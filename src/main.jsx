@@ -77,7 +77,6 @@ const zukanStorageKey = 'noLimitCrewIsland.zukanCards';
 function App() {
   const [screen, setScreen] = useState('island');
   const [selectedArea, setSelectedArea] = useState(areas[0]);
-  const [isEntering, setIsEntering] = useState(false);
   const [foundCards, setFoundCards] = useState(() => {
     try {
       const savedCards = JSON.parse(window.localStorage.getItem(zukanStorageKey) || '[]');
@@ -135,20 +134,11 @@ function App() {
     setSelectedArea(area);
     if (area.id === 'sun') {
       addFoundCard('sun');
+      setScreen('sun');
     }
-    setIsEntering(true);
-    window.clearTimeout(window.noLimitCrewTimer);
-    window.noLimitCrewTimer = window.setTimeout(() => {
-      setIsEntering(false);
-      if (area.id === 'sun') {
-        setScreen('sun');
-      }
-    }, 1600);
   };
 
   const backToIsland = () => {
-    window.clearTimeout(window.noLimitCrewTimer);
-    setIsEntering(false);
     setScreen('island');
     setSelectedArea(areas[0]);
   };
@@ -157,7 +147,7 @@ function App() {
     <main className="topPage" aria-label="NO LIMIT CREW ISLAND top page">
       {screen === 'island' && (
       <section
-        className={`mapScreen ${isEntering ? 'isEntering' : ''}`}
+        className="mapScreen"
         data-target={selectedArea?.id || ''}
         aria-label="Island map screen"
       >
@@ -179,7 +169,7 @@ function App() {
               style={{ left: area.x, top: area.y }}
               onMouseEnter={() => chooseArea(area)}
               onFocus={() => chooseArea(area)}
-              onClick={() => chooseArea(area)}
+              onClick={() => (area.id === 'sun' ? enterArea(area) : chooseArea(area))}
             >
               <span>{area.label === 'COMING SOON' ? 'SOON' : area.label}</span>
             </button>
@@ -200,27 +190,9 @@ function App() {
         <aside className="hud hudRight" aria-live="polite">
           <p className="eyebrow">SELECT AREA</p>
           <p className="selectedArea">{selectedArea ? `${selectedArea.label} is ready` : 'Tap a glowing sign'}</p>
-          <button
-            className="enterButton"
-            type="button"
-            onClick={() => enterArea()}
-            disabled={!selectedArea}
-          >
-            {isEntering ? 'ENTERING...' : 'ENTER AREA'}
-          </button>
         </aside>
 
         <div className="tapPrompt">TAP TO EXPLORE</div>
-
-        <div className={`transitionCard ${isEntering ? 'isVisible' : ''}`} role="status" aria-live="polite">
-          <p className="stamp">TRAVEL STAMP</p>
-          <strong>{selectedArea?.label || 'THE SUN'}</strong>
-          <span>{selectedArea?.id === 'sun' ? 'Loading entrance...' : 'Entrance will be built next.'}</span>
-        </div>
-
-        <div className={`cardNotice ${cardNotice ? 'isVisible' : ''}`} role="status" aria-live="polite">
-          {cardNotice}
-        </div>
 
         {isZukanOpen && (
           <div className="zukanOverlay" role="presentation" onClick={() => setIsZukanOpen(false)}>
@@ -275,18 +247,19 @@ function App() {
       {screen === 'sun' && (
         <section className="sunPage" aria-label="THE SUN page">
           <div className="sunPageImage">
-            <img src="/images/world-view-card.png" alt="THE SUN world view card" loading="lazy" decoding="async" />
+            <img src="/images/the-sun-map.png" alt="THE SUN area map" loading="lazy" decoding="async" />
           </div>
           <div className="sunPageHud">
-            <p className="eyebrow">THE SUN AREA</p>
-            <h1>THE SUN</h1>
-            <p>なんとかなるって。</p>
             <div className="sunPageActions">
               <button type="button" className="enterButton" onClick={backToIsland}>BACK TO ISLAND</button>
             </div>
           </div>
         </section>
       )}
+
+      <div className={`cardNotice ${cardNotice ? 'isVisible' : ''}`} role="status" aria-live="polite">
+        {cardNotice}
+      </div>
     </main>
   );
 }
