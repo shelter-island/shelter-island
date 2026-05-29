@@ -75,6 +75,7 @@ const zukanCards = [
 const zukanStorageKey = 'noLimitCrewIsland.zukanCards';
 
 function App() {
+  const [screen, setScreen] = useState('island');
   const [selectedArea, setSelectedArea] = useState(areas[0]);
   const [isEntering, setIsEntering] = useState(false);
   const [foundCards, setFoundCards] = useState(() => {
@@ -139,11 +140,22 @@ function App() {
     window.clearTimeout(window.noLimitCrewTimer);
     window.noLimitCrewTimer = window.setTimeout(() => {
       setIsEntering(false);
+      if (area.id === 'sun') {
+        setScreen('sun');
+      }
     }, 1600);
+  };
+
+  const backToIsland = () => {
+    window.clearTimeout(window.noLimitCrewTimer);
+    setIsEntering(false);
+    setScreen('island');
+    setSelectedArea(areas[0]);
   };
 
   return (
     <main className="topPage" aria-label="NO LIMIT CREW ISLAND top page">
+      {screen === 'island' && (
       <section
         className={`mapScreen ${isEntering ? 'isEntering' : ''}`}
         data-target={selectedArea?.id || ''}
@@ -258,6 +270,23 @@ function App() {
           </div>
         )}
       </section>
+      )}
+
+      {screen === 'sun' && (
+        <section className="sunPage" aria-label="THE SUN page">
+          <div className="sunPageImage">
+            <img src="/images/world-view-card.png" alt="THE SUN world view card" loading="lazy" decoding="async" />
+          </div>
+          <div className="sunPageHud">
+            <p className="eyebrow">THE SUN AREA</p>
+            <h1>THE SUN</h1>
+            <p>なんとかなるって。</p>
+            <div className="sunPageActions">
+              <button type="button" className="enterButton" onClick={backToIsland}>BACK TO ISLAND</button>
+            </div>
+          </div>
+        </section>
+      )}
     </main>
   );
 }

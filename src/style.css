@@ -531,6 +531,63 @@ h1 {
   line-height: 1.6;
 }
 
+.sunPage {
+  position: relative;
+  width: min(100%, 1500px);
+  aspect-ratio: 3 / 2;
+  max-height: calc(100vh - 28px);
+  border: 4px solid rgba(255, 241, 199, 0.78);
+  background: #050607;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.65), inset 0 0 0 2px rgba(255, 212, 71, 0.28);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.sunPage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.72), transparent 44%, rgba(0, 0, 0, 0.28));
+}
+
+.sunPageImage {
+  position: absolute;
+  inset: 0;
+}
+
+.sunPageImage img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.sunPageHud {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 4;
+  width: min(360px, 34vw);
+  padding: 16px;
+  border: 3px solid rgba(255, 241, 199, 0.72);
+  background: rgba(5, 6, 7, 0.76);
+  box-shadow: 7px 7px 0 rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(2px);
+}
+
+.sunPageHud p {
+  margin: 10px 0 14px;
+  color: var(--yellow);
+  font-weight: 900;
+}
+
+.sunPageActions {
+  display: grid;
+  gap: 10px;
+}
+
 @keyframes blink {
   50% {
     opacity: 0.38;
@@ -830,6 +887,51 @@ h1 {
   .cardDetail img,
   .cardSilhouette {
     max-height: 56svh;
+  }
+
+  .sunPage {
+    width: 100%;
+    min-height: 100svh;
+    max-height: none;
+    aspect-ratio: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    border-width: 0;
+    overflow: auto;
+  }
+
+  .sunPage::after {
+    display: none;
+  }
+
+  .sunPageImage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    border: 3px solid rgba(255, 241, 199, 0.72);
+    overflow: hidden;
+    order: 2;
+  }
+
+  .sunPageImage img {
+    object-fit: cover;
+  }
+
+  .sunPageHud {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    order: 1;
+    width: 100%;
+    padding: 10px;
+    border-width: 2px;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.32);
+  }
+
+  .sunPageActions .enterButton {
+    width: 100%;
   }
 }
 
