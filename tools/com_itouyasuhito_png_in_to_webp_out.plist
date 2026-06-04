@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.itouyasuhito.png-in-to-webp-out</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/itouyasuhito/Documents/チームアイコン/Scripts/png-in-to-webp-out.sh</string>
+    <string>--watch-scan</string>
+  </array>
+
+  <key>WatchPaths</key>
+  <array>
+    <string>/Users/itouyasuhito/Documents/チームアイコン/PNG IN</string>
+  </array>
+
+  <key>StartInterval</key>
+  <integer>10</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/itouyasuhito/Documents/チームアイコン/Scripts/launchd.stdout.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/itouyasuhito/Documents/チームアイコン/Scripts/launchd.stderr.log</string>
+</dict>
+</plist>
