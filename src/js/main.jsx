@@ -78,6 +78,7 @@ const sunSpots = [
     y: '58%',
     image: assetPath('images/ui/world_item_file.webp'),
     description: '旅で見つけた道具やカードを交換できる、にぎやかなマーケット。',
+    routeReady: true,
   },
   {
     id: 'craft_workshop',
@@ -87,6 +88,7 @@ const sunSpots = [
     y: '42%',
     image: assetPath('images/areas/bike_setting_file.webp'),
     description: '木工、手作り、DIYの職人たちが集まる工房。',
+    routeReady: true,
   },
   {
     id: 'secret_tree',
@@ -106,6 +108,7 @@ const sunSpots = [
     y: '71%',
     image: assetPath('images/areas/world_view_card.webp'),
     description: 'スケボー、音楽、笑い声が集まるみんなの遊び場。',
+    routeReady: true,
   },
   {
     id: 'sunset_deck',
@@ -115,6 +118,7 @@ const sunSpots = [
     y: '23%',
     image: assetPath('images/areas/the_sun_profile.webp'),
     description: '夕日がいちばんきれいに見える、今日をしめくくるデッキ。',
+    routeReady: true,
   },
 ];
 
@@ -164,6 +168,34 @@ const routeCards = [
     image: assetPath('images/the_sun_route/lucky_shell.webp'),
     description: 'SUN MARKETで見つけた、THE SUN AREA最初の探索ルートをしめくくる幸運の貝殻。',
   },
+  {
+    id: 'sun_voyager_pass',
+    title: 'SUN VOYAGER PASS',
+    kind: 'VOYAGER CARD',
+    image: assetPath('images/the_sun_route/sun_dock.webp'),
+    description: 'SUN DOCKから海へ出る準備が整ったことを示す、特別な航海パス。',
+  },
+  {
+    id: 'craft_hammer',
+    title: 'CRAFT HAMMER',
+    kind: 'WORKSHOP CARD',
+    image: assetPath('images/areas/bike_setting_file.webp'),
+    description: 'CRAFT WORKSHOPで見つけた、ものづくりの始まりを知らせる小さなハンマー。',
+  },
+  {
+    id: 'chill_badge',
+    title: 'CHILL BADGE',
+    kind: 'HANGOUT CARD',
+    image: assetPath('images/characters/iphone_720x1280/chill_kitty_relaxer_card_iphone.webp'),
+    description: 'HANGOUT SPOTで見つけた、ゆるく過ごす仲間のしるし。',
+  },
+  {
+    id: 'sunset_compass',
+    title: 'SUNSET COMPASS',
+    kind: 'SUNSET CARD',
+    image: assetPath('images/areas/the_sun_profile.webp'),
+    description: 'SUNSET DECKで見つけた、夕日の方角を指す小さなコンパス。',
+  },
 ];
 
 const sunRoutes = {
@@ -210,14 +242,67 @@ const sunRoutes = {
     spotId: 'sun_dock',
     spotTitle: 'SUN DOCK',
     spotImage: assetPath('images/the_sun_route/sun_dock.webp'),
-    itemId: 'sun_market',
-    itemTitle: 'SUN MARKET',
-    itemKind: 'MARKET ITEM',
-    itemImage: assetPath('images/the_sun_route/sun_market.webp'),
-    itemDescription: '港の奥にある小さなマーケット。光る棚をタップすると、最後のカードにつながる。',
+    itemId: 'ticket_info',
+    itemTitle: 'TICKET & INFO',
+    itemKind: 'DOCK GUIDE',
+    itemImage: assetPath('images/the_sun_route/sun_dock.webp'),
+    itemDescription: 'SUN DOCKから出発する前に見る、チケットと案内の小さな受付。',
     finalCardId: 'lucky_shell',
+    infoOnly: true,
     tapX: '61%',
     tapY: '54%',
+  },
+  sun_market: {
+    spotId: 'sun_market',
+    spotTitle: 'SUN MARKET',
+    spotImage: assetPath('images/the_sun_route/sun_market.webp'),
+    itemId: 'lucky_shell',
+    itemTitle: 'LUCKY SHELL',
+    itemKind: 'MARKET ITEM',
+    itemImage: assetPath('images/the_sun_route/lucky_shell.webp'),
+    itemDescription: 'マーケットの棚で見つけた幸運の貝殻。光る貝殻をタップするとカードが見つかる。',
+    finalCardId: 'lucky_shell',
+    tapX: '58%',
+    tapY: '54%',
+  },
+  craft_workshop: {
+    spotId: 'craft_workshop',
+    spotTitle: 'CRAFT WORKSHOP',
+    spotImage: assetPath('images/areas/bike_setting_file.webp'),
+    itemId: 'craft_hammer',
+    itemTitle: 'CRAFT HAMMER',
+    itemKind: 'WORKSHOP ITEM',
+    itemImage: assetPath('images/areas/bike_setting_file.webp'),
+    itemDescription: '工房の作業台に置かれたハンマー。光る道具をタップするとカードが見つかる。',
+    finalCardId: 'craft_hammer',
+    tapX: '56%',
+    tapY: '58%',
+  },
+  hangout_spot: {
+    spotId: 'hangout_spot',
+    spotTitle: 'HANGOUT SPOT',
+    spotImage: assetPath('images/characters/iphone_720x1280/stay_fresh_hangout_spot_iphone.webp'),
+    itemId: 'chill_badge',
+    itemTitle: 'CHILL BADGE',
+    itemKind: 'HANGOUT ITEM',
+    itemImage: assetPath('images/characters/iphone_720x1280/chill_kitty_relaxer_card_iphone.webp'),
+    itemDescription: '遊び場のすみで見つけたバッジ。光るしるしをタップするとカードが見つかる。',
+    finalCardId: 'chill_badge',
+    tapX: '52%',
+    tapY: '56%',
+  },
+  sunset_deck: {
+    spotId: 'sunset_deck',
+    spotTitle: 'SUNSET DECK',
+    spotImage: assetPath('images/areas/the_sun_profile.webp'),
+    itemId: 'sunset_compass',
+    itemTitle: 'SUNSET COMPASS',
+    itemKind: 'VIEW ITEM',
+    itemImage: assetPath('images/areas/the_sun_profile.webp'),
+    itemDescription: 'デッキの上で夕日を向いていたコンパス。光る針をタップするとカードが見つかる。',
+    finalCardId: 'sunset_compass',
+    tapX: '54%',
+    tapY: '52%',
   },
 };
 
@@ -318,10 +403,23 @@ function App() {
   };
 
   const openRouteItem = () => {
+    if (activeRoute.infoOnly) {
+      setScreen('ticketInfo');
+      return;
+    }
+
     const finalCard = routeCards.find((card) => card.id === activeRoute.finalCardId);
     if (!finalCard) return;
 
     setDiscoveredCard(finalCard);
+    setScreen('cardFound');
+  };
+
+  const openSunVoyagerPass = () => {
+    const voyagerPassCard = routeCards.find((card) => card.id === 'sun_voyager_pass');
+    if (!voyagerPassCard) return;
+
+    setDiscoveredCard(voyagerPassCard);
     setScreen('cardFound');
   };
 
@@ -342,52 +440,24 @@ function App() {
   return (
     <main className="topPage" aria-label="NO LIMIT CREW ISLAND">
       {screen === 'island' && (
-        <section className="mapScreen" data-target={selectedArea?.id || ''} aria-label="Island map screen">
-          <div className="mapShell">
+        <section className="topMapScreen" aria-label="NO LIMIT CREW ISLAND top map">
+          <div className="topMapFrame">
             <img
-              className="islandMap"
-              src={assetPath('images/backgrounds/island_map.webp')}
-              alt="NO LIMIT CREW ISLAND map"
+              className="topMapImage"
+              src={assetPath('images/no_limit_crew_island.webp')}
+              alt="NO LIMIT CREW ISLAND"
               draggable="false"
               fetchPriority="high"
               decoding="async"
             />
 
-            {areas.map((area) => (
-              <button
-                key={area.id}
-                type="button"
-                className={`hotspot ${area.tone} ${selectedArea?.id === area.id ? 'isActive' : ''}`}
-                style={{ left: area.x, top: area.y }}
-                onMouseEnter={() => chooseArea(area)}
-                onFocus={() => chooseArea(area)}
-                onClick={() => openArea(area)}
-              >
-                <span>{area.label === 'COMING SOON' ? 'SOON' : area.label}</span>
-              </button>
-            ))}
-
-            <button className="zukanButton" type="button" onClick={() => setIsZukanOpen(true)}>
-              <span>MY ZUKAN</span>
-              <b>{foundCards.length}/{allCards.length}</b>
-            </button>
+            <button
+              type="button"
+              className="topSunHotspot"
+              aria-label="THE SUN"
+              onClick={() => openArea(areas[0])}
+            />
           </div>
-
-          <header className="hud hudLeft">
-            <p className="eyebrow">ISLAND MAP</p>
-            <h1>NO LIMIT CREW ISLAND</h1>
-            <p className="slogan">NO WAR.<br />NO LIMIT.<br />TODAY IS A GOOD DAY.</p>
-          </header>
-
-          <aside className="hud hudRight" aria-live="polite">
-            <p className="eyebrow">SELECT AREA</p>
-            <p className="selectedArea">{selectedArea ? selectedArea.note : 'Tap a glowing sign'}</p>
-            <button type="button" className="enterButton" onClick={() => selectedArea && openArea(selectedArea)}>
-              ENTER
-            </button>
-          </aside>
-
-          <div className="tapPrompt">TAP THE SUN AREA</div>
         </section>
       )}
 
@@ -490,6 +560,171 @@ function App() {
               <p>{activeRoute.itemDescription}</p>
               <button type="button" className="enterButton" onClick={openRouteItem}>
                 TAP ITEM
+              </button>
+            </aside>
+          </div>
+        </section>
+      )}
+
+      {screen === 'ticketInfo' && (
+        <section className="routePage" aria-label={`${activeRoute.itemTitle} page`}>
+          <header className="sunTopbar">
+            <button type="button" className="backButton" onClick={() => setScreen('spot')}>BACK</button>
+            <div>
+              <p className="eyebrow">SUN DOCK</p>
+              <h1>{activeRoute.itemTitle}</h1>
+            </div>
+            <button type="button" className="zukanMiniButton" onClick={() => setIsZukanOpen(true)}>
+              {foundCards.length}/{allCards.length}
+            </button>
+          </header>
+
+          <div className="routeStage">
+            <div className="routeVisual">
+              <img src={activeRoute.itemImage} alt={activeRoute.itemTitle} loading="lazy" decoding="async" />
+            </div>
+
+            <aside className="routePanel">
+              <p className="eyebrow">{activeRoute.itemKind}</p>
+              <h2>{activeRoute.itemTitle}</h2>
+              <p>{activeRoute.itemDescription}</p>
+              <button type="button" className="enterButton" onClick={() => setScreen('boatTicket')}>
+                BOAT TICKET
+              </button>
+              <button type="button" className="enterButton" onClick={backToSunArea}>
+                BACK TO AREA
+              </button>
+            </aside>
+          </div>
+        </section>
+      )}
+
+      {screen === 'boatTicket' && (
+        <section className="routePage" aria-label="BOAT TICKET page">
+          <header className="sunTopbar">
+            <button type="button" className="backButton" onClick={() => setScreen('ticketInfo')}>BACK</button>
+            <div>
+              <p className="eyebrow">TICKET & INFO</p>
+              <h1>BOAT TICKET</h1>
+            </div>
+            <button type="button" className="zukanMiniButton" onClick={() => setIsZukanOpen(true)}>
+              {foundCards.length}/{allCards.length}
+            </button>
+          </header>
+
+          <div className="routeStage">
+            <div className="routeVisual">
+              <img src={activeRoute.spotImage} alt="BOAT TICKET" loading="lazy" decoding="async" />
+            </div>
+
+            <aside className="routePanel">
+              <p className="eyebrow">BOARDING PASS</p>
+              <h2>BOAT TICKET</h2>
+              <p>SUN DOCKから次の場所へ向かうためのチケット。今は案内ページとして確認できます。</p>
+              <button type="button" className="enterButton" onClick={() => setScreen('boardingPass')}>
+                BOARDING PASS
+              </button>
+              <button type="button" className="enterButton" onClick={() => setScreen('ticketInfo')}>
+                BACK TO INFO
+              </button>
+            </aside>
+          </div>
+        </section>
+      )}
+
+      {screen === 'boardingPass' && (
+        <section className="routePage" aria-label="BOARDING PASS page">
+          <header className="sunTopbar">
+            <button type="button" className="backButton" onClick={() => setScreen('boatTicket')}>BACK</button>
+            <div>
+              <p className="eyebrow">BOAT TICKET</p>
+              <h1>BOARDING PASS</h1>
+            </div>
+            <button type="button" className="zukanMiniButton" onClick={() => setIsZukanOpen(true)}>
+              {foundCards.length}/{allCards.length}
+            </button>
+          </header>
+
+          <div className="routeStage">
+            <div className="routeVisual">
+              <img src={activeRoute.spotImage} alt="BOARDING PASS" loading="lazy" decoding="async" />
+            </div>
+
+            <aside className="routePanel">
+              <p className="eyebrow">PASS CHECK</p>
+              <h2>BOARDING PASS</h2>
+              <p>船に乗る前に確認するパス。SUN DOCKから次の探索へ進む準備がここに記録されます。</p>
+              <button type="button" className="enterButton" onClick={() => setScreen('departureStamp')}>
+                DEPARTURE STAMP
+              </button>
+              <button type="button" className="enterButton" onClick={() => setScreen('boatTicket')}>
+                BACK TO TICKET
+              </button>
+            </aside>
+          </div>
+        </section>
+      )}
+
+      {screen === 'departureStamp' && (
+        <section className="routePage" aria-label="DEPARTURE STAMP page">
+          <header className="sunTopbar">
+            <button type="button" className="backButton" onClick={() => setScreen('boardingPass')}>BACK</button>
+            <div>
+              <p className="eyebrow">BOARDING PASS</p>
+              <h1>DEPARTURE STAMP</h1>
+            </div>
+            <button type="button" className="zukanMiniButton" onClick={() => setIsZukanOpen(true)}>
+              {foundCards.length}/{allCards.length}
+            </button>
+          </header>
+
+          <div className="routeStage">
+            <div className="routeVisual">
+              <img src={activeRoute.spotImage} alt="DEPARTURE STAMP" loading="lazy" decoding="async" />
+            </div>
+
+            <aside className="routePanel">
+              <p className="eyebrow">STAMP CHECK</p>
+              <h2>DEPARTURE STAMP</h2>
+              <p>出発前に押す小さなスタンプ。SUN DOCKから旅立つ準備が整ったしるしです。</p>
+              <button type="button" className="enterButton" onClick={() => setScreen('sailPermit')}>
+                SAIL PERMIT
+              </button>
+              <button type="button" className="enterButton" onClick={() => setScreen('boardingPass')}>
+                BACK TO PASS
+              </button>
+            </aside>
+          </div>
+        </section>
+      )}
+
+      {screen === 'sailPermit' && (
+        <section className="routePage" aria-label="SAIL PERMIT page">
+          <header className="sunTopbar">
+            <button type="button" className="backButton" onClick={() => setScreen('departureStamp')}>BACK</button>
+            <div>
+              <p className="eyebrow">DEPARTURE STAMP</p>
+              <h1>SAIL PERMIT</h1>
+            </div>
+            <button type="button" className="zukanMiniButton" onClick={() => setIsZukanOpen(true)}>
+              {foundCards.length}/{allCards.length}
+            </button>
+          </header>
+
+          <div className="routeStage">
+            <div className="routeVisual">
+              <img src={activeRoute.spotImage} alt="SAIL PERMIT" loading="lazy" decoding="async" />
+            </div>
+
+            <aside className="routePanel">
+              <p className="eyebrow">PERMIT CHECK</p>
+              <h2>SAIL PERMIT</h2>
+              <p>SUN DOCKから船を出すための許可証。次の海へ進む準備を確認するページです。</p>
+              <button type="button" className="enterButton" onClick={openSunVoyagerPass}>
+                SUN VOYAGER PASS
+              </button>
+              <button type="button" className="enterButton" onClick={() => setScreen('departureStamp')}>
+                BACK TO STAMP
               </button>
             </aside>
           </div>
