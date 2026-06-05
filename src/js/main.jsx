@@ -9,6 +9,7 @@ const buildParts = [
     id: 'tree',
     name: 'TREE',
     icon: 'tree',
+    mark: '🌳',
     label: '木',
     limit: 6,
     warmth: 1,
@@ -18,6 +19,7 @@ const buildParts = [
     id: 'bench',
     name: 'BENCH',
     icon: 'bench',
+    mark: '🪑',
     label: 'ベンチ',
     limit: 4,
     warmth: 1,
@@ -27,6 +29,7 @@ const buildParts = [
     id: 'light',
     name: 'LIGHT',
     icon: 'light',
+    mark: '💡',
     label: 'ライト',
     limit: 5,
     warmth: 1,
@@ -36,6 +39,7 @@ const buildParts = [
     id: 'crate',
     name: 'CRATE',
     icon: 'crate',
+    mark: '📦',
     label: '木箱',
     limit: 6,
     warmth: 0,
@@ -785,6 +789,14 @@ function App() {
     setCardNotice('ISLAND RESET');
   };
 
+  const getBuildEventIcon = (eventLine) => {
+    if (eventLine.includes('light')) return '💡';
+    if (eventLine.includes('trees')) return '🌳';
+    if (eventLine.includes('alive')) return '📦';
+    if (eventLine.includes('dock')) return '🪑';
+    return '✨';
+  };
+
   const inspectSpot = (spot) => {
     setSelectedSpot(spot);
     if (spot.routeReady) {
@@ -869,18 +881,18 @@ function App() {
           aria-label="SUN AREA build prototype"
         >
           <header className="buildTopbar">
-            <button type="button" className="backButton" onClick={backToIsland}>BACK</button>
+            <button type="button" className="backButton iconOnlyButton" onClick={backToIsland} aria-label="Back to island">←</button>
             <div>
-              <p className="eyebrow">SUN AREA BUILD</p>
-              <h1>GROW YOUR SUN AREA</h1>
+              <p className="eyebrow">☀️ 🏝️</p>
+              <h1 aria-label="Grow your SUN AREA">☀️🏝️</h1>
             </div>
             <div className="buildActions">
-              <button type="button" className="buildMiniButton" onClick={() => setScreen('sun')}>EXPLORE</button>
-              <button type="button" className="buildMiniButton" onClick={() => setIsNight((current) => !current)}>
-                {isNight ? 'DAY' : 'NIGHT'}
+              <button type="button" className="buildMiniButton iconOnlyButton" onClick={() => setScreen('sun')} aria-label="Explore SUN AREA">🗺️</button>
+              <button type="button" className="buildMiniButton iconOnlyButton" onClick={() => setIsNight((current) => !current)} aria-label={isNight ? 'Switch to day' : 'Switch to night'}>
+                {isNight ? '☀️' : '🌙'}
               </button>
-              <button type="button" className="buildMiniButton" onClick={toggleWaveLoop}>
-                {isWaveOn ? 'WAVES ON' : 'WAVES OFF'}
+              <button type="button" className={`buildMiniButton iconOnlyButton ${isWaveOn ? 'isOn' : ''}`} onClick={toggleWaveLoop} aria-label={isWaveOn ? 'Stop waves' : 'Start waves'}>
+                🌊
               </button>
             </div>
           </header>
@@ -974,7 +986,7 @@ function App() {
                     onPointerDown={(event) => collectPlacedPart(event, placedPart.id)}
                     aria-label={`Remove ${part.name}`}
                   >
-                    <span>{part.name}</span>
+                    <span>{part.mark}</span>
                   </button>
                 );
               })}
@@ -997,9 +1009,9 @@ function App() {
             </div>
 
             <aside className="buildStats" aria-live="polite">
-              <p className="eyebrow">AREA FEEL</p>
+              <p className="eyebrow">🏝️</p>
               <label className="customIslandName">
-                <span>ISLAND NAME</span>
+                <span aria-label="Island name">✏️</span>
                 <input
                   type="text"
                   value={customIslandName}
@@ -1013,39 +1025,44 @@ function App() {
                 <span>{sunAreaStats.islandName}</span>
                 <b>{sunAreaStats.airStage}</b>
               </div>
-              <h2>LEVEL {sunAreaStats.level}</h2>
-              <p className="moodLine">{sunAreaStats.mood}</p>
+              <h2 aria-label={`Level ${sunAreaStats.level}`}>✦ {sunAreaStats.level}</h2>
+              <div className="moodLine visualMood" aria-label={sunAreaStats.mood}>
+                <span className={sunAreaStats.partCount > 0 ? 'isAwake' : ''}>☀️</span>
+                <span className={sunAreaStats.trees > 0 ? 'isAwake' : ''}>🌳</span>
+                <span className={sunAreaStats.presence > 0 ? 'isAwake' : ''}>👥</span>
+                <span className={isNight && sunAreaStats.lights > 0 ? 'isAwake' : ''}>💡</span>
+              </div>
               <div className="statRows">
-                <span>WARMTH <b>{sunAreaStats.warmth}</b><em>{sunAreaStats.warmthText}</em></span>
-                <span>PEOPLE <b>{sunAreaStats.presence}</b><em>{sunAreaStats.peopleText}</em></span>
-                <span>PARTS <b>{placedParts.length}</b><em>{placedParts.length === 0 ? 'A blank little place' : 'Your touch is visible'}</em></span>
+                <span aria-label={`Warmth ${sunAreaStats.warmth}`}>🔥 <b>{sunAreaStats.warmth}</b><em>{sunAreaStats.warmthText}</em></span>
+                <span aria-label={`People ${sunAreaStats.presence}`}>👥 <b>{sunAreaStats.presence}</b><em>{sunAreaStats.peopleText}</em></span>
+                <span aria-label={`Parts ${placedParts.length}`}>🧩 <b>{placedParts.length}</b><em>{placedParts.length === 0 ? 'A blank little place' : 'Your touch is visible'}</em></span>
               </div>
-              <div className="feelNotes">
-                <p>{sunAreaStats.natureText}</p>
-                <p>{sunAreaStats.peopleText}</p>
-                <p>{sunAreaStats.lightText}</p>
-                <p>{sunAreaStats.workText}</p>
+              <div className="feelNotes visualFeelNotes" aria-label="Island atmosphere">
+                <p aria-label={sunAreaStats.natureText}>🌳 <b>{sunAreaStats.trees}</b></p>
+                <p aria-label={sunAreaStats.peopleText}>👥 <b>{sunAreaStats.presence}</b></p>
+                <p aria-label={sunAreaStats.lightText}>💡 <b>{sunAreaStats.lights}</b></p>
+                <p aria-label={sunAreaStats.workText}>📦 <b>{sunAreaStats.crates}</b></p>
               </div>
-              <div className="eventLog">
-                <p className="eyebrow">ISLAND REPLIES</p>
+              <div className="eventLog visualEventLog" aria-label="Island replies">
+                <p className="eyebrow">✨</p>
                 {buildEvents.map((eventLine) => (
-                  <p className="eventLine" key={eventLine}>{eventLine}</p>
+                  <p className="eventLine" key={eventLine} aria-label={eventLine}>{getBuildEventIcon(eventLine)}</p>
                 ))}
               </div>
-              <div className="memoryLog">
-                <p className="eyebrow">MEMORIES</p>
+              <div className="memoryLog visualMemoryLog" aria-label="Memories">
+                <p className="eyebrow">💭</p>
                 {partMemories.length === 0 ? (
-                  <p className="memoryLine">No first pieces yet.</p>
+                  <p className="memoryLine" aria-label="No first pieces yet">○</p>
                 ) : (
                   partMemories.map((partId) => (
-                    <p className="memoryLine" key={partId}>{firstPartMemoryLines[partId]}</p>
+                    <p className="memoryLine" key={partId} aria-label={firstPartMemoryLines[partId]}>{partById[partId]?.mark || '✨'}</p>
                   ))
                 )}
               </div>
               <p className="buildHint">
                 {selectedPartId ? 'Tap the island to place a part. Tap a placed part to return it.' : 'Tap the island to walk.'}
               </p>
-              <button type="button" className="enterButton" onClick={resetBuildArea}>RESET ISLAND</button>
+              <button type="button" className="enterButton iconOnlyButton resetIconButton" onClick={resetBuildArea} aria-label="Reset island">↺</button>
             </aside>
           </div>
 
@@ -1054,9 +1071,10 @@ function App() {
               type="button"
               className={`partButton ${selectedPartId === null ? 'isSelected' : ''}`}
               onClick={() => setSelectedPartId(null)}
+              aria-label="Move"
             >
-              <span>MOVE</span>
-              <b>TAP WALK</b>
+              <span>👣</span>
+              <b>·</b>
             </button>
             {inventory.map((part) => (
               <button
@@ -1065,8 +1083,9 @@ function App() {
                 className={`partButton ${selectedPartId === part.id ? 'isSelected' : ''}`}
                 onClick={() => setSelectedPartId(part.id)}
                 disabled={part.remaining <= 0}
+                aria-label={part.name}
               >
-                <span>{part.name}</span>
+                <span>{part.mark}</span>
                 <b>{part.remaining}/{part.limit}</b>
               </button>
             ))}
