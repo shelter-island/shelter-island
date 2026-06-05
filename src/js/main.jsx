@@ -1,8 +1,78 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import '../css/style.css';
 
 const assetPath = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`;
+
+const buildParts = [
+  {
+    id: 'tree',
+    name: 'TREE',
+    icon: 'tree',
+    label: '木',
+    limit: 6,
+    warmth: 1,
+    presence: 0,
+  },
+  {
+    id: 'bench',
+    name: 'BENCH',
+    icon: 'bench',
+    label: 'ベンチ',
+    limit: 4,
+    warmth: 1,
+    presence: 1,
+  },
+  {
+    id: 'light',
+    name: 'LIGHT',
+    icon: 'light',
+    label: 'ライト',
+    limit: 5,
+    warmth: 1,
+    presence: 1,
+  },
+  {
+    id: 'crate',
+    name: 'CRATE',
+    icon: 'crate',
+    label: '木箱',
+    limit: 6,
+    warmth: 0,
+    presence: 1,
+  },
+];
+
+const buildStorageKey = 'no_limit_crew_island_sun_build';
+const buildMemoryStorageKey = 'no_limit_crew_island_sun_build_memories';
+const buildSaveStorageKey = 'no_limit_crew_island_sun_build_save';
+const initialPlayer = { x: 50, y: 58 };
+const defaultPlacedParts = [];
+
+const partById = Object.fromEntries(buildParts.map((part) => [part.id, part]));
+
+const loadBuildSave = () => {
+  try {
+    const savedBuild = JSON.parse(window.localStorage.getItem(buildSaveStorageKey) || '{}');
+    return savedBuild && typeof savedBuild === 'object' ? savedBuild : {};
+  } catch {
+    return {};
+  }
+};
+
+const partReactionLines = {
+  tree: 'A quiet breeze moved through the trees.',
+  bench: 'Someone stopped by the dock.',
+  light: 'The light made the island feel warmer.',
+  crate: 'The dock feels a little more alive.',
+};
+
+const firstPartMemoryLines = {
+  tree: 'First TREE placed.',
+  bench: 'First BENCH placed.',
+  light: 'First LIGHT placed.',
+  crate: 'First CRATE placed.',
+};
 
 const areas = [
   {
@@ -310,6 +380,7 @@ const allCards = [...starterCards, ...sunSpots, ...routeCards];
 const zukanStorageKey = 'no_limit_crew_island_zukan_cards';
 
 function App() {
+  const savedBuildState = useMemo(() => loadBuildSave(), []);
   const [screen, setScreen] = useState('island');
   const [selectedArea, setSelectedArea] = useState(areas[0]);
   const [selectedSpot, setSelectedSpot] = useState(sunSpots[0]);
@@ -317,6 +388,33 @@ function App() {
   const [discoveredCard, setDiscoveredCard] = useState(routeCards[0]);
   const [isZukanOpen, setIsZukanOpen] = useState(false);
   const [cardNotice, setCardNotice] = useState('');
+  const [player, setPlayer] = useState(initialPlayer);
+  const [moveTarget, setMoveTarget] = useState(null);
+  const [selectedPartId, setSelectedPartId] = useState('tree');
+  const [isNight, setIsNight] = useState(() => Boolean(savedBuildState.isNight));
+  const [isWaveOn, setIsWaveOn] = useState(false);
+  const [customIslandName, setCustomIslandName] = useState(() => savedBuildState.customIslandName || '');
+  const [buildEvents, setBuildEvents] = useState(['The island is listening.']);
+  const [partMemories, setPartMemories] = useState(() => {
+    try {
+      if (Array.isArray(savedBuildState.memories)) return savedBuildState.memories;
+      const savedMemories = JSON.parse(window.localStorage.getItem(buildMemoryStorageKey) || '[]');
+      return Array.isArray(savedMemories) ? savedMemories : [];
+    } catch {
+      return [];
+    }
+  });
+  const [placedParts, setPlacedParts] = useState(() => {
+    try {
+      if (Array.isArray(savedBuildState.placedParts)) {
+        return savedBuildState.placedParts;
+      }
+      const savedBuild = JSON.parse(window.localStorage.getItem(buildStorageKey) || '[]');
+      return Array.isArray(savedBuild) && savedBuild.length > 0 ? savedBuild : defaultPlacedParts;
+    } catch {
+      return defaultPlacedParts;
+    }
+  });
   const [foundCards, setFoundCards] = useState(() => {
     try {
       const savedCards = JSON.parse(window.localStorage.getItem(zukanStorageKey) || '[]');
@@ -331,10 +429,114 @@ function App() {
     [foundCards],
   );
   const activeRoute = sunRoutes[selectedSpot.id] || sunRoutes.sun_dock;
+  const buildStageRef = useRef(null);
+  const keysRef = useRef(new Set());
+  const audioRef = useRef(null);
+  const inventory = useMemo(
+    () => buildParts.map((part) => ({
+      ...part,
+      remaining: Math.max(0, part.limit - placedParts.filter((placedPart) => placedPart.partId === part.id).length),
+    })),
+    [placedParts],
+  );
+  const sunAreaStats = useMemo(() => {
+    const totals = placedParts.reduce(
+      (currentStats, placedPart) => {
+        const part = partById[placedPart.partId];
+        if (!part) return currentStats;
+        return {
+          warmth: currentStats.warmth + part.warmth,
+          presence: currentStats.presence + part.presence,
+          trees: currentStats.trees + (part.id === 'tree' ? 1 : 0),
+          benches: currentStats.benches + (part.id === 'bench' ? 1 : 0),
+          lights: currentStats.lights + (part.id === 'light' ? 1 : 0),
+          crates: currentStats.crates + (part.id === 'crate' ? 1 : 0),
+        };
+      },
+      { warmth: 0, presence: 0, trees: 0, benches: 0, lights: 0, crates: 0 },
+    );
+    const partCount = placedParts.length;
+    const memoryCount = partMemories.length;
+    const islandName =
+      partCount === 0
+        ? 'Silent Shore'
+        : totals.lights > 0 && partCount < 3
+          ? 'First Light Island'
+          : totals.presence < 3
+            ? 'Small Dock'
+            : totals.warmth < 6
+              ? 'Warm Dock'
+              : 'Living Sun Area';
+    const airStage =
+      partCount === 0
+        ? 'Quiet'
+        : memoryCount < 2
+          ? 'Waiting'
+          : totals.warmth < 4
+            ? 'Soft'
+            : partCount < 7
+              ? 'Warm'
+              : 'Alive';
+    const mood =
+      partCount === 0
+        ? 'A quiet island waiting for your first touch.'
+        : memoryCount < 2
+          ? 'The island remembers your first few pieces.'
+          : memoryCount < 4
+            ? 'The island is starting to feel like it knows you.'
+            : partCount < 7
+              ? 'Small signs of daily life are gathering around your choices.'
+              : 'Your SUN AREA feels alive and personal.';
+    const warmthText = totals.warmth === 0 ? 'Still cool and empty' : totals.warmth < 4 ? 'A little warmer' : 'Warm and welcoming';
+    const peopleText = totals.presence === 0 ? 'No one has a reason to stop yet' : totals.presence < 4 ? 'Someone might sit for a while' : 'People would naturally gather here';
+    const natureText = totals.trees === 0 ? 'The island needs green shade' : totals.trees < 3 ? 'Green shade is growing' : 'Nature is taking root';
+    const workText = totals.crates === 0 ? 'No harbor work signs yet' : totals.crates < 3 ? 'A small work corner appears' : 'The dock feels busy and useful';
+    const lightText = totals.lights === 0 ? 'Nights are still dark' : totals.lights < 3 ? 'A few lights guide the night' : 'Night has a gentle glow';
+
+    return {
+      ...totals,
+      partCount,
+      memoryCount,
+      islandName,
+      airStage,
+      mood,
+      warmthText,
+      peopleText,
+      natureText,
+      workText,
+      lightText,
+      level: Math.min(4, Math.floor(partCount / 3)),
+    };
+  }, [partMemories, placedParts]);
 
   useEffect(() => {
     window.localStorage.setItem(zukanStorageKey, JSON.stringify(foundCards));
   }, [foundCards]);
+
+  useEffect(() => {
+    window.localStorage.setItem(buildStorageKey, JSON.stringify(placedParts));
+  }, [placedParts]);
+
+  useEffect(() => {
+    window.localStorage.setItem(buildMemoryStorageKey, JSON.stringify(partMemories));
+  }, [partMemories]);
+
+  useEffect(() => {
+    window.localStorage.setItem(buildSaveStorageKey, JSON.stringify({
+      placedParts,
+      isNight,
+      memories: partMemories,
+      stats: {
+        warmth: sunAreaStats.warmth,
+        people: sunAreaStats.presence,
+        parts: sunAreaStats.partCount,
+      },
+      customIslandName,
+      islandName: sunAreaStats.islandName,
+      airStage: sunAreaStats.airStage,
+      savedAt: new Date().toISOString(),
+    }));
+  }, [customIslandName, isNight, partMemories, placedParts, sunAreaStats]);
 
   useEffect(() => {
     if (!cardNotice) return undefined;
@@ -353,6 +555,79 @@ function App() {
 
     window.addEventListener('keydown', closePanels);
     return () => window.removeEventListener('keydown', closePanels);
+  }, []);
+
+  useEffect(() => {
+    if (screen !== 'build') return undefined;
+
+    const movementKeys = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd']);
+    const handleKeyDown = (event) => {
+      if (movementKeys.has(event.key)) {
+        event.preventDefault();
+        keysRef.current.add(event.key);
+        setMoveTarget(null);
+      }
+    };
+    const handleKeyUp = (event) => {
+      keysRef.current.delete(event.key);
+    };
+    let animationFrame = 0;
+    let lastTime = performance.now();
+    const tick = (time) => {
+      const delta = Math.min(40, time - lastTime) / 16.67;
+      lastTime = time;
+      setPlayer((currentPlayer) => {
+        let dx = 0;
+        let dy = 0;
+        const activeKeys = keysRef.current;
+        if (activeKeys.has('ArrowLeft') || activeKeys.has('a')) dx -= 1;
+        if (activeKeys.has('ArrowRight') || activeKeys.has('d')) dx += 1;
+        if (activeKeys.has('ArrowUp') || activeKeys.has('w')) dy -= 1;
+        if (activeKeys.has('ArrowDown') || activeKeys.has('s')) dy += 1;
+
+        if (dx !== 0 || dy !== 0) {
+          const length = Math.hypot(dx, dy) || 1;
+          return {
+            x: Math.max(15, Math.min(85, currentPlayer.x + (dx / length) * 0.72 * delta)),
+            y: Math.max(22, Math.min(78, currentPlayer.y + (dy / length) * 0.72 * delta)),
+          };
+        }
+
+        if (moveTarget) {
+          const targetDx = moveTarget.x - currentPlayer.x;
+          const targetDy = moveTarget.y - currentPlayer.y;
+          const distance = Math.hypot(targetDx, targetDy);
+          if (distance < 0.9) {
+            setMoveTarget(null);
+            return currentPlayer;
+          }
+          return {
+            x: Math.max(15, Math.min(85, currentPlayer.x + (targetDx / distance) * 0.58 * delta)),
+            y: Math.max(22, Math.min(78, currentPlayer.y + (targetDy / distance) * 0.58 * delta)),
+          };
+        }
+
+        return currentPlayer;
+      });
+      animationFrame = requestAnimationFrame(tick);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    animationFrame = requestAnimationFrame(tick);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      cancelAnimationFrame(animationFrame);
+      keysRef.current.clear();
+    };
+  }, [moveTarget, screen]);
+
+  useEffect(() => () => {
+    if (audioRef.current) {
+      audioRef.current.source.stop();
+      audioRef.current.context.close();
+    }
   }, []);
 
   const addFoundCard = (cardId) => {
@@ -381,10 +656,133 @@ function App() {
   const openArea = (area) => {
     setSelectedArea(area);
     if (area.id === 'the_sun_area') {
-      enterSunArea();
+      addFoundCard('the_sun');
+      setScreen('build');
     } else {
       setCardNotice('COMING SOON');
     }
+  };
+
+  const startWaveLoop = () => {
+    if (audioRef.current) return;
+
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+      setCardNotice('AUDIO OFF');
+      return;
+    }
+
+    const context = new AudioContext();
+    const bufferSize = context.sampleRate * 2;
+    const buffer = context.createBuffer(1, bufferSize, context.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i += 1) {
+      data[i] = (Math.random() * 2 - 1) * 0.28;
+    }
+
+    const source = context.createBufferSource();
+    const filter = context.createBiquadFilter();
+    const gain = context.createGain();
+    source.buffer = buffer;
+    source.loop = true;
+    filter.type = 'lowpass';
+    filter.frequency.value = 420;
+    gain.gain.value = 0.08;
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(context.destination);
+    source.start();
+    audioRef.current = { context, source, gain };
+    setIsWaveOn(true);
+  };
+
+  const toggleWaveLoop = () => {
+    if (!audioRef.current) {
+      startWaveLoop();
+      return;
+    }
+
+    const nextWaveState = !isWaveOn;
+    audioRef.current.gain.gain.value = nextWaveState ? 0.08 : 0;
+    setIsWaveOn(nextWaveState);
+  };
+
+  const getBuildPoint = (event) => {
+    const stage = buildStageRef.current;
+    if (!stage) return null;
+
+    const rect = stage.getBoundingClientRect();
+    return {
+      x: Math.max(8, Math.min(92, ((event.clientX - rect.left) / rect.width) * 100)),
+      y: Math.max(10, Math.min(86, ((event.clientY - rect.top) / rect.height) * 100)),
+    };
+  };
+
+  const addBuildEvent = (message) => {
+    if (!message) return;
+
+    setBuildEvents((currentEvents) => [
+      message,
+      ...currentEvents.filter((eventLine) => eventLine !== message),
+    ].slice(0, 4));
+  };
+
+  const placePart = (point) => {
+    const selectedInventoryPart = inventory.find((part) => part.id === selectedPartId);
+    if (!selectedInventoryPart || selectedInventoryPart.remaining <= 0) {
+      setCardNotice('PARTS EMPTY');
+      return;
+    }
+
+    const nextPartId = selectedPartId;
+    const firstMemoryLine = firstPartMemoryLines[nextPartId];
+    const isFirstPlacement = firstMemoryLine && !partMemories.includes(nextPartId);
+
+    setPlacedParts((currentParts) => [
+      ...currentParts,
+      {
+        id: `${nextPartId}_${Date.now()}`,
+        partId: nextPartId,
+        x: point.x,
+        y: point.y,
+      },
+    ]);
+    addBuildEvent(partReactionLines[nextPartId]);
+    if (isFirstPlacement) {
+      setPartMemories((currentMemories) => [...currentMemories, nextPartId]);
+    }
+    setCardNotice(`${selectedInventoryPart.name} PLACED`);
+  };
+
+  const handleBuildStageTap = (event) => {
+    if (event.target.closest('button')) return;
+
+    const point = getBuildPoint(event);
+    if (!point) return;
+
+    if (selectedPartId) {
+      placePart(point);
+      return;
+    }
+
+    setMoveTarget(point);
+  };
+
+  const collectPlacedPart = (event, placedPartId) => {
+    event.stopPropagation();
+    setPlacedParts((currentParts) => currentParts.filter((placedPart) => placedPart.id !== placedPartId));
+    setCardNotice('PART RETURNED');
+  };
+
+  const resetBuildArea = () => {
+    setPlacedParts(defaultPlacedParts);
+    setPartMemories([]);
+    setBuildEvents(['The island is listening.']);
+    setCustomIslandName('');
+    setIsNight(false);
+    setPlayer(initialPlayer);
+    setMoveTarget(null);
+    setCardNotice('ISLAND RESET');
   };
 
   const inspectSpot = (spot) => {
@@ -458,6 +856,221 @@ function App() {
               onClick={() => openArea(areas[0])}
             />
           </div>
+        </section>
+      )}
+
+      {screen === 'build' && (
+        <section
+          className={`buildPage ${isNight ? 'isNight' : 'isDay'} level${sunAreaStats.level}`}
+          data-trees={sunAreaStats.trees}
+          data-benches={sunAreaStats.benches}
+          data-lights={sunAreaStats.lights}
+          data-crates={sunAreaStats.crates}
+          aria-label="SUN AREA build prototype"
+        >
+          <header className="buildTopbar">
+            <button type="button" className="backButton" onClick={backToIsland}>BACK</button>
+            <div>
+              <p className="eyebrow">SUN AREA BUILD</p>
+              <h1>GROW YOUR SUN AREA</h1>
+            </div>
+            <div className="buildActions">
+              <button type="button" className="buildMiniButton" onClick={() => setScreen('sun')}>EXPLORE</button>
+              <button type="button" className="buildMiniButton" onClick={() => setIsNight((current) => !current)}>
+                {isNight ? 'DAY' : 'NIGHT'}
+              </button>
+              <button type="button" className="buildMiniButton" onClick={toggleWaveLoop}>
+                {isWaveOn ? 'WAVES ON' : 'WAVES OFF'}
+              </button>
+            </div>
+          </header>
+
+          <div className="buildStageWrap">
+            <div
+              className="buildStage"
+              ref={buildStageRef}
+              onPointerDown={handleBuildStageTap}
+              role="application"
+              aria-label="SUN AREA sandbox map"
+            >
+              <div className="buildSea" aria-hidden="true" />
+              <div className="buildIsland" aria-hidden="true" />
+              <div className="lonelyMarkers" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
+              <div className="natureGlow" aria-hidden="true" />
+              <div className="peopleTrace" aria-hidden="true">
+                <span />
+                <span />
+              </div>
+              <div className="harborTrace" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
+              <div className="nightGlowField" aria-hidden="true" />
+              <div className="buildDock" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
+              <div className="buildEmptyPatch" aria-hidden="true" />
+              <div className="natureReactionLayer" aria-hidden="true">
+                {placedParts
+                  .filter((placedPart) => placedPart.partId === 'tree')
+                  .slice(0, 5)
+                  .map((placedPart, index) => (
+                    <span
+                      key={`leaf_${placedPart.id}`}
+                      className={`leafDrift leaf${index % 3}`}
+                      style={{ left: `${placedPart.x}%`, top: `${Math.max(12, placedPart.y - 10)}%` }}
+                    />
+                  ))}
+              </div>
+              <div className="visitorReactionLayer" aria-hidden="true">
+                {placedParts
+                  .filter((placedPart) => placedPart.partId === 'bench')
+                  .slice(0, 3)
+                  .map((placedPart, index) => (
+                    <span
+                      key={`bench_visitor_${placedPart.id}`}
+                      className="visitorDot benchVisitor"
+                      style={{ left: `${Math.min(90, placedPart.x + 7)}%`, top: `${Math.max(14, placedPart.y - 5 + index)}%` }}
+                    />
+                  ))}
+                {isNight && placedParts
+                  .filter((placedPart) => placedPart.partId === 'light')
+                  .slice(0, 4)
+                  .map((placedPart, index) => (
+                    <span
+                      key={`light_visitor_${placedPart.id}`}
+                      className="visitorDot lightVisitor"
+                      style={{ left: `${Math.max(10, placedPart.x - 7)}%`, top: `${Math.min(84, placedPart.y + 7 + index)}%` }}
+                    />
+                  ))}
+                {placedParts
+                  .filter((placedPart) => placedPart.partId === 'crate')
+                  .slice(0, 4)
+                  .map((placedPart, index) => (
+                    <span
+                      key={`work_mark_${placedPart.id}`}
+                      className={`workMark work${index % 2}`}
+                      style={{ left: `${Math.min(91, placedPart.x + 6)}%`, top: `${Math.min(84, placedPart.y + 5)}%` }}
+                    />
+                  ))}
+              </div>
+
+              {placedParts.map((placedPart) => {
+                const part = partById[placedPart.partId];
+                if (!part) return null;
+                return (
+                  <button
+                    key={placedPart.id}
+                    type="button"
+                    className={`buildPiece ${part.icon} ${isNight && part.id === 'light' ? 'isLit' : ''}`}
+                    style={{ left: `${placedPart.x}%`, top: `${placedPart.y}%` }}
+                    onPointerDown={(event) => collectPlacedPart(event, placedPart.id)}
+                    aria-label={`Remove ${part.name}`}
+                  >
+                    <span>{part.name}</span>
+                  </button>
+                );
+              })}
+
+              <div
+                className="buildPlayer"
+                style={{ left: `${player.x}%`, top: `${player.y}%` }}
+                aria-label="Player"
+              >
+                <span />
+              </div>
+
+              {moveTarget && (
+                <div
+                  className="moveTarget"
+                  style={{ left: `${moveTarget.x}%`, top: `${moveTarget.y}%` }}
+                  aria-hidden="true"
+                />
+              )}
+            </div>
+
+            <aside className="buildStats" aria-live="polite">
+              <p className="eyebrow">AREA FEEL</p>
+              <label className="customIslandName">
+                <span>ISLAND NAME</span>
+                <input
+                  type="text"
+                  value={customIslandName}
+                  maxLength="24"
+                  placeholder="My Sun Area"
+                  onChange={(event) => setCustomIslandName(event.target.value)}
+                  aria-label="Custom island name"
+                />
+              </label>
+              <div className="islandIdentity">
+                <span>{sunAreaStats.islandName}</span>
+                <b>{sunAreaStats.airStage}</b>
+              </div>
+              <h2>LEVEL {sunAreaStats.level}</h2>
+              <p className="moodLine">{sunAreaStats.mood}</p>
+              <div className="statRows">
+                <span>WARMTH <b>{sunAreaStats.warmth}</b><em>{sunAreaStats.warmthText}</em></span>
+                <span>PEOPLE <b>{sunAreaStats.presence}</b><em>{sunAreaStats.peopleText}</em></span>
+                <span>PARTS <b>{placedParts.length}</b><em>{placedParts.length === 0 ? 'A blank little place' : 'Your touch is visible'}</em></span>
+              </div>
+              <div className="feelNotes">
+                <p>{sunAreaStats.natureText}</p>
+                <p>{sunAreaStats.peopleText}</p>
+                <p>{sunAreaStats.lightText}</p>
+                <p>{sunAreaStats.workText}</p>
+              </div>
+              <div className="eventLog">
+                <p className="eyebrow">ISLAND REPLIES</p>
+                {buildEvents.map((eventLine) => (
+                  <p className="eventLine" key={eventLine}>{eventLine}</p>
+                ))}
+              </div>
+              <div className="memoryLog">
+                <p className="eyebrow">MEMORIES</p>
+                {partMemories.length === 0 ? (
+                  <p className="memoryLine">No first pieces yet.</p>
+                ) : (
+                  partMemories.map((partId) => (
+                    <p className="memoryLine" key={partId}>{firstPartMemoryLines[partId]}</p>
+                  ))
+                )}
+              </div>
+              <p className="buildHint">
+                {selectedPartId ? 'Tap the island to place a part. Tap a placed part to return it.' : 'Tap the island to walk.'}
+              </p>
+              <button type="button" className="enterButton" onClick={resetBuildArea}>RESET ISLAND</button>
+            </aside>
+          </div>
+
+          <section className="partsTray" aria-label="Owned parts">
+            <button
+              type="button"
+              className={`partButton ${selectedPartId === null ? 'isSelected' : ''}`}
+              onClick={() => setSelectedPartId(null)}
+            >
+              <span>MOVE</span>
+              <b>TAP WALK</b>
+            </button>
+            {inventory.map((part) => (
+              <button
+                key={part.id}
+                type="button"
+                className={`partButton ${selectedPartId === part.id ? 'isSelected' : ''}`}
+                onClick={() => setSelectedPartId(part.id)}
+                disabled={part.remaining <= 0}
+              >
+                <span>{part.name}</span>
+                <b>{part.remaining}/{part.limit}</b>
+              </button>
+            ))}
+          </section>
         </section>
       )}
 
