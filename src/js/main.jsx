@@ -1,6 +1,39 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import '../css/style.css';
+import {
+  createAreaMemorySummary,
+  createAreaMoodHistoryEntry,
+  createAreaMoodSnapshot,
+  createResidentMemorySummary,
+  getAreaMoodHistory,
+  getResidentHistory,
+  initialAreaMood,
+} from './residentMemory.js';
+import {
+  areaMoodEffects,
+  areaMoodHistoryLimit,
+  createInitialResidentHistory,
+  createInitialResidents,
+  createResidentDefinitions,
+  residentHistoryLimit,
+  residentPersonalities,
+  residentTraceLimit,
+  SHOW_AREA_MEMORY_CARD,
+  SHOW_RESIDENT_DEBUG,
+} from './residentConfig.js';
+import {
+  applyPersonalityToSpot,
+  chooseWeightedSpot,
+  clampResidentPosition,
+} from './residentMovement.js';
+import { createResidentTrace } from './residentTrace.js';
+import {
+  addEnvironmentEventHistory,
+  createEnvironmentEvent,
+  getEnvironmentEventDelay,
+  getEnvironmentEventHistory,
+} from './environmentEvent.js';
 
 const assetPath = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`;
 
@@ -50,10 +83,11 @@ const buildParts = [
 const buildStorageKey = 'no_limit_crew_island_sun_build';
 const buildMemoryStorageKey = 'no_limit_crew_island_sun_build_memories';
 const buildSaveStorageKey = 'no_limit_crew_island_sun_build_save';
-const initialPlayer = { x: 50, y: 58 };
 const defaultPlacedParts = [];
 
 const partById = Object.fromEntries(buildParts.map((part) => [part.id, part]));
+
+const residentDefinitions = createResidentDefinitions(assetPath);
 
 const loadBuildSave = () => {
   try {
@@ -392,8 +426,14 @@ function App() {
   const [discoveredCard, setDiscoveredCard] = useState(routeCards[0]);
   const [isZukanOpen, setIsZukanOpen] = useState(false);
   const [cardNotice, setCardNotice] = useState('');
-  const [player, setPlayer] = useState(initialPlayer);
-  const [moveTarget, setMoveTarget] = useState(null);
+  const [residents, setResidents] = useState(() => (
+    createInitialResidents(residentDefinitions)
+  ));
+  const [residentCycles, setResidentCycles] = useState({});
+  const [residentTraces, setResidentTraces] = useState([]);
+  const [environmentEvent, setEnvironmentEvent] = useState(null);
+  const [areaMood, setAreaMood] = useState(initialAreaMood);
+  const [, setResidentDebugVersion] = useState(0);
   const [selectedPartId, setSelectedPartId] = useState('tree');
   const [isNight, setIsNight] = useState(() => Boolean(savedBuildState.isNight));
   const [isWaveOn, setIsWaveOn] = useState(false);
@@ -434,8 +474,98 @@ function App() {
   );
   const activeRoute = sunRoutes[selectedSpot.id] || sunRoutes.sun_dock;
   const buildStageRef = useRef(null);
-  const keysRef = useRef(new Set());
   const audioRef = useRef(null);
+  const residentManualTimersRef = useRef(new Map());
+  const residentTraceTimersRef = useRef(new Map());
+  const residentTraceSequenceRef = useRef(0);
+  const environmentEventSequenceRef = useRef(0);
+  const environmentEventHistoryRef = useRef([]);
+  const areaMoodSampleCountRef = useRef(0);
+  const areaMoodHistoryRef = useRef([]);
+  const residentHistoryRef = useRef(
+    createInitialResidentHistory(residentDefinitions),
+  );
+  const recordResidentHistory = (residentId, entry) => {
+    const currentHistory = residentHistoryRef.current[residentId] || [];
+    residentHistoryRef.current[residentId] = [
+      ...currentHistory,
+      {
+        residentId,
+        ...entry,
+        timestamp: new Date().toISOString(),
+      },
+    ].slice(-residentHistoryLimit);
+    areaMoodSampleCountRef.current += 1;
+    if (areaMoodSampleCountRef.current >= 10) {
+      areaMoodSampleCountRef.current = 0;
+      setAreaMood((currentMood) => {
+        const nextMood = createAreaMoodSnapshot(residentHistoryRef.current, currentMood);
+        const historyEntry = createAreaMoodHistoryEntry(currentMood, nextMood);
+
+        if (historyEntry) {
+          areaMoodHistoryRef.current = [
+            ...areaMoodHistoryRef.current,
+            historyEntry,
+          ].slice(-areaMoodHistoryLimit);
+        }
+
+        return nextMood;
+      });
+    }
+    if (SHOW_RESIDENT_DEBUG || SHOW_AREA_MEMORY_CARD) {
+      setResidentDebugVersion((currentVersion) => currentVersion + 1);
+    }
+  };
+  const leaveResidentTrace = (residentId, spot, reason) => {
+    const trace = createResidentTrace({
+      residentId,
+      spot,
+      reason,
+      sequence: residentTraceSequenceRef.current,
+      areaMoodName: areaMood.name,
+    });
+    residentTraceSequenceRef.current += 1;
+
+    setResidentTraces((currentTraces) => [
+      ...currentTraces,
+      trace,
+    ].slice(-residentTraceLimit));
+
+    const traceTimer = window.setTimeout(() => {
+      setResidentTraces((currentTraces) => (
+        currentTraces.filter((currentTrace) => currentTrace.id !== trace.id)
+      ));
+      residentTraceTimersRef.current.delete(trace.id);
+    }, trace.duration);
+    residentTraceTimersRef.current.set(trace.id, traceTimer);
+  };
+  const residentDebugEntries = SHOW_RESIDENT_DEBUG
+    ? residents.map((resident) => ({
+      residentId: resident.id,
+      history: getResidentHistory(residentHistoryRef.current, resident.id, 5),
+      summaries: createResidentMemorySummary(
+        getResidentHistory(
+          residentHistoryRef.current,
+          resident.id,
+          residentHistoryLimit,
+        ),
+      ),
+      traceCount: residentTraces.filter((trace) => trace.residentId === resident.id).length,
+    }))
+    : [];
+  const areaMoodDebugHistory = SHOW_RESIDENT_DEBUG
+    ? getAreaMoodHistory(areaMoodHistoryRef.current, 3)
+    : [];
+  const environmentEventDebugHistory = SHOW_RESIDENT_DEBUG
+    ? getEnvironmentEventHistory(environmentEventHistoryRef.current)
+    : [];
+  const areaMemorySummary = SHOW_RESIDENT_DEBUG || SHOW_AREA_MEMORY_CARD
+    ? createAreaMemorySummary(
+      residentHistoryRef.current,
+      areaMoodHistoryRef.current,
+      3,
+    )
+    : [];
   const inventory = useMemo(
     () => buildParts.map((part) => ({
       ...part,
@@ -561,78 +691,372 @@ function App() {
     return () => window.removeEventListener('keydown', closePanels);
   }, []);
 
-  useEffect(() => {
-    if (screen !== 'build') return undefined;
-
-    const movementKeys = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd']);
-    const handleKeyDown = (event) => {
-      if (movementKeys.has(event.key)) {
-        event.preventDefault();
-        keysRef.current.add(event.key);
-        setMoveTarget(null);
-      }
-    };
-    const handleKeyUp = (event) => {
-      keysRef.current.delete(event.key);
-    };
-    let animationFrame = 0;
-    let lastTime = performance.now();
-    const tick = (time) => {
-      const delta = Math.min(40, time - lastTime) / 16.67;
-      lastTime = time;
-      setPlayer((currentPlayer) => {
-        let dx = 0;
-        let dy = 0;
-        const activeKeys = keysRef.current;
-        if (activeKeys.has('ArrowLeft') || activeKeys.has('a')) dx -= 1;
-        if (activeKeys.has('ArrowRight') || activeKeys.has('d')) dx += 1;
-        if (activeKeys.has('ArrowUp') || activeKeys.has('w')) dy -= 1;
-        if (activeKeys.has('ArrowDown') || activeKeys.has('s')) dy += 1;
-
-        if (dx !== 0 || dy !== 0) {
-          const length = Math.hypot(dx, dy) || 1;
-          return {
-            x: Math.max(15, Math.min(85, currentPlayer.x + (dx / length) * 0.72 * delta)),
-            y: Math.max(22, Math.min(78, currentPlayer.y + (dy / length) * 0.72 * delta)),
-          };
-        }
-
-        if (moveTarget) {
-          const targetDx = moveTarget.x - currentPlayer.x;
-          const targetDy = moveTarget.y - currentPlayer.y;
-          const distance = Math.hypot(targetDx, targetDy);
-          if (distance < 0.9) {
-            setMoveTarget(null);
-            return currentPlayer;
-          }
-          return {
-            x: Math.max(15, Math.min(85, currentPlayer.x + (targetDx / distance) * 0.58 * delta)),
-            y: Math.max(22, Math.min(78, currentPlayer.y + (targetDy / distance) * 0.58 * delta)),
-          };
-        }
-
-        return currentPlayer;
-      });
-      animationFrame = requestAnimationFrame(tick);
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    animationFrame = requestAnimationFrame(tick);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-      cancelAnimationFrame(animationFrame);
-      keysRef.current.clear();
-    };
-  }, [moveTarget, screen]);
-
   useEffect(() => () => {
     if (audioRef.current) {
       audioRef.current.source.stop();
       audioRef.current.context.close();
     }
+    residentManualTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    residentManualTimersRef.current.clear();
+    residentTraceTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    residentTraceTimersRef.current.clear();
   }, []);
+
+  useEffect(() => {
+    if (screen !== 'build') return undefined;
+
+    let eventTimer;
+    let removalTimer;
+    let isFirstEvent = true;
+
+    const scheduleNextEvent = () => {
+      eventTimer = window.setTimeout(() => {
+        const event = createEnvironmentEvent({
+          areaMoodName: areaMood.name,
+          isNight,
+          hasTrees: placedParts.some((part) => part.partId === 'tree'),
+          hasLights: placedParts.some((part) => part.partId === 'light'),
+          sequence: environmentEventSequenceRef.current,
+        });
+        environmentEventSequenceRef.current += 1;
+        environmentEventHistoryRef.current = addEnvironmentEventHistory(
+          environmentEventHistoryRef.current,
+          event,
+        );
+        setEnvironmentEvent(event);
+
+        removalTimer = window.setTimeout(() => {
+          setEnvironmentEvent((currentEvent) => (
+            currentEvent?.id === event.id ? null : currentEvent
+          ));
+        }, event.duration);
+
+        isFirstEvent = false;
+        scheduleNextEvent();
+      }, getEnvironmentEventDelay(isFirstEvent));
+    };
+
+    scheduleNextEvent();
+
+    return () => {
+      window.clearTimeout(eventTimer);
+      window.clearTimeout(removalTimer);
+      setEnvironmentEvent(null);
+    };
+  }, [areaMood.name, isNight, placedParts, screen]);
+
+  useEffect(() => {
+    if (screen !== 'build') return undefined;
+
+    const chooseResidentSpot = (resident) => {
+      const personality = residentPersonalities[resident.personality] || residentPersonalities.relaxed;
+      const trees = placedParts.filter((placedPart) => placedPart.partId === 'tree');
+      const benches = placedParts.filter((placedPart) => placedPart.partId === 'bench');
+      const lights = placedParts.filter((placedPart) => placedPart.partId === 'light');
+      const crates = placedParts.filter((placedPart) => placedPart.partId === 'crate');
+      const routineSpots = [];
+      const specialSpots = [
+        {
+          ...clampResidentPosition(52, 43),
+          presence: isNight ? '…' : '☀️',
+          presenceChance: 0.72,
+          presenceDuration: 3000,
+          pauseBonus: 7200,
+          pose: 'watch',
+          kind: 'sky',
+          specialAction: 'sky',
+          travelTime: 5200,
+          weight: 3,
+        },
+        {
+          ...clampResidentPosition(64, 68),
+          presence: '🌊',
+          presenceChance: 0.46,
+          presenceDuration: 3000,
+          pauseBonus: 6800,
+          pose: 'watch',
+          kind: 'dock',
+          facing: 'right',
+          specialAction: 'dock',
+          travelTime: 5600,
+          weight: isNight ? 1 : 3,
+        },
+      ];
+
+      if (trees.length > 0) {
+        const tree = trees[Math.floor(Math.random() * trees.length)];
+        const orbitSide = Math.random() < 0.5 ? -1 : 1;
+        specialSpots.push({
+          ...clampResidentPosition(tree.x + orbitSide * 7, tree.y + 5),
+          presence: '🌿',
+          presenceChance: 0.52,
+          presenceDuration: 2800,
+          pauseBonus: 5600,
+          pose: 'idle',
+          kind: 'tree',
+          specialAction: 'tree-circle',
+          travelTime: 5800,
+          weight: isNight ? 1 : 3,
+        });
+      }
+
+      if (isNight && lights.length > 0) {
+        const light = lights[Math.floor(Math.random() * lights.length)];
+        specialSpots.push({
+          ...clampResidentPosition(light.x - 3, light.y + 9),
+          presence: '💡',
+          presenceChance: 0.78,
+          presenceDuration: 3200,
+          pauseBonus: 9200,
+          pose: 'watch',
+          kind: 'light',
+          specialAction: 'light-pause',
+          travelTime: 7200,
+          weight: 4,
+        });
+      }
+
+      const favoriteSpecialAvailable = specialSpots.some(
+        (spot) => spot.kind === resident.favoriteSpot,
+      );
+      const moodEffects = areaMoodEffects[areaMood.name] || areaMoodEffects.calm;
+      const specialActionChance = ((isNight ? 0.07 : 0.06)
+        + (favoriteSpecialAvailable
+          ? personality.favoriteSpotModifiers?.specialActionChanceBonus || 0
+          : 0))
+        * moodEffects.specialActionMultiplier;
+
+      if (Math.random() < specialActionChance) {
+        return chooseWeightedSpot(
+          specialSpots.map((spot) => (
+            applyPersonalityToSpot(
+              spot,
+              personality,
+              isNight,
+              resident.favoriteSpot,
+              areaMood.name,
+            )
+          )),
+        );
+      }
+
+      if (trees.length > 0) {
+        const tree = trees[Math.floor(Math.random() * trees.length)];
+        routineSpots.push({
+          ...clampResidentPosition(tree.x + 8, tree.y + 4),
+          presence: '🌿',
+          presenceChance: isNight ? 0.16 : 0.42,
+          pauseBonus: isNight ? 1600 : 2800,
+          pose: 'idle',
+          kind: 'tree',
+          specialAction: '',
+          travelTime: 4600,
+          weight: isNight ? 1 : 5,
+        });
+      }
+
+      if (benches.length > 0) {
+        const bench = benches[Math.floor(Math.random() * benches.length)];
+        routineSpots.push({
+          ...clampResidentPosition(bench.x, bench.y + 5),
+          presence: '…',
+          presenceChance: isNight ? 0.48 : 0.28,
+          pauseBonus: isNight ? 5600 : 2800,
+          pose: 'sit',
+          kind: 'bench',
+          specialAction: '',
+          travelTime: 4600,
+          weight: isNight ? 6 : 3,
+        });
+      }
+
+      if (isNight && lights.length > 0) {
+        const light = lights[Math.floor(Math.random() * lights.length)];
+        routineSpots.push({
+          ...clampResidentPosition(light.x - 7, light.y + 8),
+          presence: '💡',
+          presenceChance: 0.44,
+          pauseBonus: 5200,
+          pose: 'watch',
+          kind: 'light',
+          specialAction: '',
+          travelTime: 4600,
+          weight: 6,
+        });
+      }
+
+      routineSpots.push({
+        ...clampResidentPosition(64, 68),
+        presence: '🌊',
+        presenceChance: isNight ? 0.1 : 0.16,
+        pauseBonus: isNight ? 3000 : 2400,
+        pose: 'watch',
+        kind: 'dock',
+        facing: 'right',
+        specialAction: '',
+        travelTime: 4600,
+        weight: isNight ? 1 : 5,
+      });
+
+      if (crates.length > 0) {
+        const crate = crates[Math.floor(Math.random() * crates.length)];
+        routineSpots.push({
+          ...clampResidentPosition(crate.x - 6, crate.y + 5),
+          presence: '…',
+          presenceChance: isNight ? 0.2 : 0.16,
+          pauseBonus: 800,
+          pose: 'watch',
+          kind: 'crate',
+          specialAction: '',
+          travelTime: 4600,
+          weight: 1,
+        });
+      }
+
+      routineSpots.push({
+        ...clampResidentPosition(isNight ? 58 : 35, isNight ? 45 : 72),
+        presence: isNight ? '…' : '☀️',
+        presenceChance: 0.18,
+        pauseBonus: 0,
+        pose: 'idle',
+        kind: 'quiet',
+        specialAction: '',
+        travelTime: 4600,
+        weight: isNight ? 2 : 2,
+      });
+
+      return chooseWeightedSpot(
+        routineSpots.map((spot) => (
+          applyPersonalityToSpot(
+            spot,
+            personality,
+            isNight,
+            resident.favoriteSpot,
+            areaMood.name,
+          )
+        )),
+      );
+    };
+
+    const timers = new Set();
+    const schedule = (callback, delay) => {
+      const timer = window.setTimeout(() => {
+        timers.delete(timer);
+        callback();
+      }, delay);
+      timers.add(timer);
+    };
+
+    const updateResident = (residentId, update) => {
+      setResidents((currentResidents) => currentResidents.map((resident) => {
+        if (resident.id !== residentId) return resident;
+        return typeof update === 'function' ? update(resident) : { ...resident, ...update };
+      }));
+    };
+
+    const beginResidentMove = (residentId) => {
+      const resident = residents.find((currentResident) => currentResident.id === residentId);
+      if (!resident) return;
+
+      const personality = residentPersonalities[resident.personality] || residentPersonalities.relaxed;
+      const nextSpot = chooseResidentSpot(resident);
+      const timeOfDay = isNight ? 'night' : 'day';
+
+      recordResidentHistory(residentId, {
+        spot: nextSpot.kind,
+        timeOfDay,
+        actionType: 'move',
+      });
+
+      updateResident(residentId, (currentResident) => ({
+        ...currentResident,
+        ...nextSpot,
+        direction: nextSpot.facing || (nextSpot.x < currentResident.x ? 'left' : 'right'),
+        presence: '',
+        isMoving: true,
+      }));
+
+      schedule(() => {
+        const showPresence = Math.random() < nextSpot.presenceChance;
+        recordResidentHistory(residentId, {
+          spot: nextSpot.kind,
+          timeOfDay,
+          actionType: 'stay',
+        });
+        if (nextSpot.specialAction) {
+          recordResidentHistory(residentId, {
+            spot: nextSpot.kind,
+            timeOfDay,
+            actionType: 'special',
+          });
+        }
+        if (nextSpot.isFavorite) {
+          recordResidentHistory(residentId, {
+            spot: nextSpot.kind,
+            timeOfDay,
+            actionType: 'favorite',
+          });
+        }
+        updateResident(residentId, (currentResident) => ({
+          ...currentResident,
+          isMoving: false,
+          presence: showPresence ? nextSpot.presence : '',
+        }));
+
+        if (showPresence) {
+          schedule(() => {
+            updateResident(residentId, (currentResident) => ({ ...currentResident, presence: '' }));
+          }, nextSpot.presenceDuration || 2400);
+        }
+
+        const period = isNight ? 'night' : 'day';
+        const basePause = (isNight ? 9000 : 5200)
+          + personality.routinePauseBonus[period];
+        const randomPause = Math.round(Math.random() * (isNight ? 4200 : 3200));
+        const moodEffects = areaMoodEffects[areaMood.name] || areaMoodEffects.calm;
+        const totalPause = Math.round(
+          (basePause + nextSpot.pauseBonus + randomPause) * moodEffects.pauseMultiplier,
+        );
+        const traceReason = nextSpot.specialAction
+          ? 'special'
+          : nextSpot.isFavorite
+            ? 'favorite'
+            : totalPause >= 12000
+              ? 'long-stay'
+              : '';
+        const traceChance = traceReason === 'special'
+          ? 0.34
+          : traceReason === 'favorite'
+            ? 0.22
+            : traceReason === 'long-stay'
+              ? 0.1
+              : 0;
+
+        if (traceReason && Math.random() < traceChance) {
+          schedule(
+            () => leaveResidentTrace(residentId, nextSpot, traceReason),
+            Math.max(1800, totalPause - 700),
+          );
+        }
+        schedule(
+          () => beginResidentMove(residentId),
+          totalPause,
+        );
+      }, nextSpot.travelTime);
+    };
+
+    residents.forEach((resident, index) => {
+      const cycle = residentCycles[resident.id] || 0;
+      const initialPause = cycle > 0
+        ? (isNight ? 15000 : 11000)
+        : (isNight ? 3600 : 2200) + index * 900;
+      schedule(() => beginResidentMove(resident.id), initialPause);
+    });
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [areaMood.name, isNight, placedParts, residentCycles, residents.length, screen]);
 
   const addFoundCard = (cardId) => {
     setFoundCards((currentCards) => {
@@ -769,7 +1193,55 @@ function App() {
       return;
     }
 
-    setMoveTarget(point);
+    const residentPosition = clampResidentPosition(point.x, point.y);
+    const controlledResident = residents.find((resident) => resident.enabled);
+    if (!controlledResident) return;
+
+    recordResidentHistory(controlledResident.id, {
+      spot: 'island',
+      timeOfDay: isNight ? 'night' : 'day',
+      actionType: 'move',
+      source: 'manual',
+      position: residentPosition,
+    });
+
+    const currentTimer = residentManualTimersRef.current.get(controlledResident.id);
+    if (currentTimer) {
+      window.clearTimeout(currentTimer);
+    }
+    setResidentCycles((currentCycles) => ({
+      ...currentCycles,
+      [controlledResident.id]: (currentCycles[controlledResident.id] || 0) + 1,
+    }));
+    setResidents((currentResidents) => currentResidents.map((resident) => (
+      resident.id === controlledResident.id
+        ? {
+          ...resident,
+          ...residentPosition,
+          direction: residentPosition.x < resident.x ? 'left' : 'right',
+          presence: '',
+          pose: 'idle',
+          isMoving: true,
+          specialAction: '',
+        }
+        : resident
+    )));
+    const manualTimer = window.setTimeout(() => {
+      recordResidentHistory(controlledResident.id, {
+        spot: 'island',
+        timeOfDay: isNight ? 'night' : 'day',
+        actionType: 'stay',
+        source: 'manual',
+        position: residentPosition,
+      });
+      setResidents((currentResidents) => currentResidents.map((resident) => (
+        resident.id === controlledResident.id
+          ? { ...resident, isMoving: false }
+          : resident
+      )));
+      residentManualTimersRef.current.delete(controlledResident.id);
+    }, 4600);
+    residentManualTimersRef.current.set(controlledResident.id, manualTimer);
   };
 
   const collectPlacedPart = (event, placedPartId) => {
@@ -779,13 +1251,25 @@ function App() {
   };
 
   const resetBuildArea = () => {
+    residentManualTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    residentManualTimersRef.current.clear();
+    residentTraceTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    residentTraceTimersRef.current.clear();
+    residentHistoryRef.current = createInitialResidentHistory(residentDefinitions);
+    environmentEventHistoryRef.current = [];
+    environmentEventSequenceRef.current = 0;
+    areaMoodSampleCountRef.current = 0;
+    areaMoodHistoryRef.current = [];
+    setResidentTraces([]);
+    setEnvironmentEvent(null);
+    setAreaMood(initialAreaMood);
     setPlacedParts(defaultPlacedParts);
     setPartMemories([]);
     setBuildEvents(['The island is listening.']);
     setCustomIslandName('');
     setIsNight(false);
-    setPlayer(initialPlayer);
-    setMoveTarget(null);
+    setResidents(createInitialResidents(residentDefinitions));
+    setResidentCycles({});
     setCardNotice('ISLAND RESET');
   };
 
@@ -878,6 +1362,7 @@ function App() {
           data-benches={sunAreaStats.benches}
           data-lights={sunAreaStats.lights}
           data-crates={sunAreaStats.crates}
+          data-area-mood={areaMood.name}
           aria-label="SUN AREA build prototype"
         >
           <header className="buildTopbar">
@@ -923,6 +1408,24 @@ function App() {
                 <span />
               </div>
               <div className="nightGlowField" aria-hidden="true" />
+              <div className="areaMoodOverlay" aria-hidden="true" />
+              <div className="environmentEventLayer" aria-hidden="true">
+                {environmentEvent && (
+                  <span
+                    key={environmentEvent.id}
+                    className={`environmentEvent event-${environmentEvent.type}`}
+                    style={{
+                      left: `${environmentEvent.x}%`,
+                      top: `${environmentEvent.y}%`,
+                      animationDuration: `${environmentEvent.duration}ms`,
+                    }}
+                  >
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                )}
+              </div>
               <div className="buildDock" aria-hidden="true">
                 <span />
                 <span />
@@ -991,20 +1494,48 @@ function App() {
                 );
               })}
 
-              <div
-                className="buildPlayer"
-                style={{ left: `${player.x}%`, top: `${player.y}%` }}
-                aria-label="Player"
-              >
-                <span />
+              <div className="residentTraceLayer" aria-hidden="true">
+                {residentTraces.map((trace) => (
+                  <span
+                    key={trace.id}
+                    className={`residentTrace trace-${trace.spot}`}
+                    data-resident-id={trace.residentId}
+                    style={{
+                      left: `${trace.x}%`,
+                      top: `${trace.y}%`,
+                      animationDuration: `${trace.duration}ms`,
+                    }}
+                  >
+                    {trace.mark}
+                  </span>
+                ))}
               </div>
 
-              {moveTarget && (
+              {residents.map((resident) => (
                 <div
-                  className="moveTarget"
-                  style={{ left: `${moveTarget.x}%`, top: `${moveTarget.y}%` }}
-                  aria-hidden="true"
-                />
+                  key={resident.id}
+                  className={`sunResident ${resident.pose} facing-${resident.direction} ${resident.isMoving ? 'isMoving' : 'isWaiting'} ${resident.specialAction ? `special-${resident.specialAction}` : ''}`}
+                  style={{ left: `${resident.x}%`, top: `${resident.y}%` }}
+                  aria-label={`${resident.name}, a quiet island resident`}
+                >
+                  <img src={resident.image} alt="" draggable="false" />
+                  {resident.presence && (
+                    <span className="residentPresence" aria-hidden="true">{resident.presence}</span>
+                  )}
+                </div>
+              ))}
+
+              {SHOW_AREA_MEMORY_CARD && (
+                <aside className="areaMemoryCard" aria-label="今日のSUN AREA">
+                  <strong>今日のSUN AREA</strong>
+                  <div>
+                    {areaMemorySummary.length > 0
+                      ? areaMemorySummary.map((summary) => (
+                        <p key={summary}>{summary}</p>
+                      ))
+                      : <p>今日の記憶を集めています</p>}
+                  </div>
+                </aside>
               )}
             </div>
 
@@ -1065,6 +1596,71 @@ function App() {
               <button type="button" className="enterButton iconOnlyButton resetIconButton" onClick={resetBuildArea} aria-label="Reset island">↺</button>
             </aside>
           </div>
+
+          {SHOW_RESIDENT_DEBUG && (
+            <aside className="residentDebugPanel" aria-label="Resident debug information">
+              <b>RESIDENT DEBUG</b>
+              <div className="residentDebugMood">
+                mood: {areaMood.name}
+                {' · '}
+                {Object.entries(areaMood.scores)
+                  .map(([moodName, score]) => `${moodName} ${score.toFixed(2)}`)
+                  .join(' / ')}
+              </div>
+              <div className="residentDebugMoodHistory">
+                {areaMoodDebugHistory.length > 0
+                  ? areaMoodDebugHistory.map((entry) => (
+                    <span key={entry.timestamp}>
+                      {entry.mood} · {entry.score.toFixed(2)}
+                      {' · '}
+                      {entry.reason}
+                    </span>
+                  ))
+                  : <span>mood history pending</span>}
+              </div>
+              <div className="residentDebugAreaMemory">
+                {areaMemorySummary.length > 0
+                  ? areaMemorySummary.map((summary) => (
+                    <span key={summary}>{summary}</span>
+                  ))
+                  : <span>area memory pending</span>}
+              </div>
+              <div className="residentDebugEnvironment">
+                <strong>environment events</strong>
+                {environmentEventDebugHistory.length > 0
+                  ? environmentEventDebugHistory.map((event) => (
+                    <span key={event.id}>
+                      {event.label} · {event.mood}
+                    </span>
+                  ))
+                  : <span>environment history pending</span>}
+              </div>
+              {residentDebugEntries.map(({
+                residentId,
+                history,
+                summaries,
+                traceCount,
+              }) => (
+                <section key={residentId}>
+                  <strong>{residentId} · traces {traceCount}</strong>
+                  <div className="residentDebugHistory">
+                    {history.length > 0
+                      ? history.map((entry, index) => (
+                        <span key={`${entry.timestamp}_${entry.actionType}_${index}`}>
+                          {entry.timeOfDay} · {entry.spot} · {entry.actionType}
+                        </span>
+                      ))
+                      : <span>no history yet</span>}
+                  </div>
+                  <div className="residentDebugSummary">
+                    {summaries.length > 0
+                      ? summaries.map((summary) => <em key={summary}>{summary}</em>)
+                      : <em>summary pending</em>}
+                  </div>
+                </section>
+              ))}
+            </aside>
+          )}
 
           <section className="partsTray" aria-label="Owned parts">
             <button
