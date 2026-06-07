@@ -1548,6 +1548,42 @@ button {
   }
 }
 
+@keyframes treeFlagGlint {
+  0%,
+  100% {
+    opacity: 0.12;
+    transform: translate(0, 1px) scale(0.76);
+  }
+
+  48% {
+    opacity: 0.34;
+    transform: translate(-2px, -1px) scale(1);
+  }
+
+  58% {
+    opacity: 0.18;
+    transform: translate(1px, 0) scale(0.82);
+  }
+}
+
+@keyframes ropeBridgeBreeze {
+  0%,
+  100% {
+    opacity: 0.12;
+    transform: translateX(-2px) rotate(-1deg) scaleX(0.9);
+  }
+
+  48% {
+    opacity: 0.3;
+    transform: translateX(4px) rotate(1deg) scaleX(1);
+  }
+
+  62% {
+    opacity: 0.18;
+    transform: translateX(1px) rotate(0) scaleX(0.94);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sunResident,
   .sunResident img,
@@ -1555,7 +1591,9 @@ button {
   .residentTrace,
   .environmentEvent,
   .environmentEvent i,
-  .event-shootingStar::before {
+  .event-shootingStar::before,
+  .treeFlagDiscovery::before,
+  .ropeBridgeDiscovery i {
     animation: none;
     transition-duration: 0.01ms;
   }
@@ -2600,29 +2638,34 @@ h1 {
 
 .spotPin {
   position: absolute;
-  min-width: 88px;
-  min-height: 32px;
-  padding: 5px 8px;
-  border: 2px solid currentColor;
-  background: rgba(5, 6, 7, 0.78);
-  color: var(--yellow);
+  max-width: 104px;
+  min-width: 58px;
+  min-height: 24px;
+  padding: 3px 6px;
+  border: 1px solid rgba(255, 241, 199, 0.38);
+  background: rgba(5, 6, 7, 0.48);
+  color: rgba(255, 241, 199, 0.76);
+  opacity: 0.72;
   transform: translate(-50%, -50%);
   cursor: pointer;
-  font-size: clamp(10px, 1vw, 14px);
-  font-weight: 900;
-  text-shadow: 2px 2px 0 var(--ink);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.05;
+  text-shadow: 1px 1px 0 var(--ink);
   box-shadow: 0 0 0 rgba(255, 212, 71, 0);
-  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+  transition: opacity 150ms ease, transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
   touch-action: manipulation;
 }
 
 .spotPin:hover,
 .spotPin:focus-visible,
 .spotPin.isActive {
-  background: rgba(255, 63, 158, 0.78);
+  border-color: rgba(255, 241, 199, 0.76);
+  background: rgba(255, 63, 158, 0.68);
   color: var(--paper);
-  transform: translate(-50%, -58%) scale(1.06);
-  box-shadow: 0 0 22px rgba(255, 212, 71, 0.5);
+  opacity: 1;
+  transform: translate(-50%, -56%) scale(1.04);
+  box-shadow: 0 0 14px rgba(255, 212, 71, 0.34);
   outline: none;
 }
 
@@ -2758,32 +2801,179 @@ h1 {
 
 .routeTapArea {
   position: absolute;
-  left: 61%;
-  top: 54%;
-  width: min(38%, 260px);
-  min-height: 62px;
-  border: 3px solid var(--yellow);
-  background: rgba(255, 63, 158, 0.82);
-  color: var(--paper);
+  left: auto;
+  top: auto;
+  right: 3%;
+  bottom: 4%;
+  width: min(28%, 190px);
+  min-height: 34px;
+  padding: 3px;
+  border: 1px solid rgba(255, 241, 199, 0.48);
+  background: rgba(5, 6, 7, 0.48);
+  color: rgba(255, 241, 199, 0.8);
+  opacity: 0.72;
   cursor: pointer;
-  font-weight: 900;
-  text-shadow: 2px 2px 0 var(--ink);
-  box-shadow: 0 0 26px rgba(255, 212, 71, 0.45), 7px 7px 0 rgba(0, 0, 0, 0.42);
-  transform: translate(-50%, -50%);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.05;
+  text-shadow: 1px 1px 0 var(--ink);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  transition: opacity 150ms ease, transform 150ms ease, background 150ms ease, box-shadow 150ms ease;
   touch-action: manipulation;
 }
 
 .routeTapArea span {
   display: block;
-  padding: 8px;
-  border: 2px dashed rgba(255, 241, 199, 0.62);
+  padding: 4px 5px;
+  border: 1px dashed rgba(255, 241, 199, 0.3);
 }
 
 .routeTapArea:hover,
-.routeTapArea:focus-visible {
-  filter: brightness(1.15);
-  transform: translate(-50%, -56%) scale(1.04);
+.routeTapArea:focus-visible,
+.routeTapArea:active {
+  border-color: rgba(255, 241, 199, 0.76);
+  background: rgba(255, 63, 158, 0.68);
+  color: var(--paper);
+  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow: 0 0 14px rgba(255, 212, 71, 0.3), 2px 2px 0 rgba(0, 0, 0, 0.34);
   outline: none;
+}
+
+.treeFlagDiscovery {
+  right: 15%;
+  bottom: 14%;
+  width: 88px;
+  min-height: 46px;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  opacity: 1;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.treeFlagDiscovery::before {
+  content: "";
+  position: absolute;
+  right: 13px;
+  top: 13px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 241, 199, 0.22);
+  box-shadow: 0 0 7px rgba(255, 212, 71, 0.18);
+  animation: treeFlagGlint 4.8s ease-in-out infinite;
+}
+
+.treeFlagDiscovery span {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 3px 5px;
+  border: 0;
+  background: rgba(5, 6, 7, 0.38);
+  color: rgba(255, 241, 199, 0.72);
+  opacity: 0.08;
+  transform: translateY(2px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.treeFlagDiscovery:hover,
+.treeFlagDiscovery:focus-visible,
+.treeFlagDiscovery:active {
+  border-color: transparent;
+  background: transparent;
+  opacity: 1;
+  transform: none;
+  box-shadow: none;
+  outline: none;
+}
+
+.treeFlagDiscovery:hover span,
+.treeFlagDiscovery:focus-visible span,
+.treeFlagDiscovery:active span {
+  opacity: 0.9;
+  transform: translateY(0);
+}
+
+.treeFlagDiscovery:hover::before,
+.treeFlagDiscovery:focus-visible::before,
+.treeFlagDiscovery:active::before {
+  background: rgba(255, 241, 199, 0.62);
+  box-shadow: 0 0 12px rgba(255, 212, 71, 0.46);
+}
+
+.ropeBridgeDiscovery {
+  position: absolute;
+  left: 8%;
+  bottom: 14%;
+  width: 124px;
+  min-height: 46px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 241, 199, 0.72);
+  cursor: pointer;
+  overflow: visible;
+  touch-action: manipulation;
+}
+
+.ropeBridgeDiscovery i {
+  position: absolute;
+  left: 5px;
+  top: 18px;
+  width: 72px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 241, 199, 0.28), transparent);
+  box-shadow: 0 1px 4px rgba(126, 226, 255, 0.12);
+  transform-origin: left center;
+  animation: ropeBridgeBreeze 5.6s ease-in-out infinite;
+}
+
+.ropeBridgeDiscovery i::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  top: 5px;
+  width: 58px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(126, 226, 255, 0.18), transparent);
+}
+
+.ropeBridgeDiscovery span {
+  position: absolute;
+  left: 4px;
+  bottom: 0;
+  padding: 3px 5px;
+  background: rgba(5, 6, 7, 0.36);
+  color: rgba(255, 241, 199, 0.72);
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0.06;
+  transform: translateX(-2px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.ropeBridgeDiscovery:hover,
+.ropeBridgeDiscovery:focus-visible,
+.ropeBridgeDiscovery:active {
+  outline: none;
+}
+
+.ropeBridgeDiscovery:hover span,
+.ropeBridgeDiscovery:focus-visible span,
+.ropeBridgeDiscovery:active span {
+  opacity: 0.9;
+  transform: translateX(0);
+}
+
+.ropeBridgeDiscovery:hover i,
+.ropeBridgeDiscovery:focus-visible i,
+.ropeBridgeDiscovery:active i {
+  background: linear-gradient(90deg, transparent, rgba(255, 241, 199, 0.56), transparent);
+  box-shadow: 0 1px 7px rgba(126, 226, 255, 0.3);
 }
 
 .routePanel {
@@ -2820,6 +3010,35 @@ h1 {
   color: rgba(255, 241, 199, 0.9);
   font-weight: 800;
   line-height: 1.55;
+}
+
+.explorationBranches {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.explorationBranches .enterButton {
+  min-height: 34px;
+  padding: 5px 7px;
+  border: 1px solid rgba(255, 241, 199, 0.32);
+  background: rgba(255, 241, 199, 0.045);
+  color: rgba(255, 241, 199, 0.72);
+  font-size: 10px;
+  font-weight: 800;
+  text-align: left;
+  box-shadow: none;
+  opacity: 0.78;
+}
+
+.explorationBranches .enterButton:not(:disabled):hover,
+.explorationBranches .enterButton:not(:disabled):focus-visible,
+.explorationBranches .enterButton:not(:disabled):active {
+  border-color: rgba(255, 241, 199, 0.68);
+  background: rgba(255, 63, 158, 0.5);
+  color: var(--paper);
+  opacity: 1;
+  transform: translateX(2px);
 }
 
 .foundPage {
@@ -3111,11 +3330,11 @@ h1 {
   }
 
   .spotPin {
-    min-width: 54px;
-    min-height: 25px;
-    padding: 4px 5px;
-    border-width: 2px;
-    font-size: 8px;
+    max-width: 72px;
+    min-width: 38px;
+    min-height: 18px;
+    padding: 2px 4px;
+    font-size: 7px;
   }
 
   .spotPanel {
@@ -3168,13 +3387,53 @@ h1 {
   }
 
   .routeTapArea {
-    left: 58%;
-    top: 55%;
-    width: 46%;
-    min-height: 48px;
-    border-width: 2px;
-    font-size: 12px;
-    box-shadow: 0 0 18px rgba(255, 212, 71, 0.4), 4px 4px 0 rgba(0, 0, 0, 0.4);
+    left: auto;
+    top: auto;
+    right: 3%;
+    bottom: 4%;
+    width: min(34%, 128px);
+    min-height: 28px;
+    font-size: 8px;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .routeTapArea span {
+    padding: 3px 4px;
+  }
+
+  .treeFlagDiscovery {
+    right: 14%;
+    bottom: 13%;
+    width: 76px;
+    min-height: 44px;
+  }
+
+  .treeFlagDiscovery span {
+    padding: 2px 4px;
+    font-size: 7px;
+  }
+
+  .ropeBridgeDiscovery {
+    left: 7%;
+    bottom: 13%;
+    width: 110px;
+    min-height: 44px;
+  }
+
+  .ropeBridgeDiscovery span {
+    padding: 2px 4px;
+    font-size: 7px;
+  }
+
+  .explorationBranches {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .explorationBranches .enterButton {
+    min-height: 30px;
+    padding: 4px 5px;
+    font-size: 8px;
   }
 
   .routePanel {

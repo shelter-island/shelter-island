@@ -39,4 +39,5 @@ NO LIMIT CREW ISLANDの中で、最初に探索できるエリア。
 * [[MY ZUKAN]]
 * [[カード一覧]]
 * [[SUN住人追加マニュアル]]
+* [[SUN AREA 探索構造]]
 * [[2026-06-05_THE_SUN_AREA完成|THE SUN AREA完成]]
