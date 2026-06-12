@@ -4,8 +4,8 @@ SUN AREAの探索スポットを、親子関係で辿れる1つの構造に整�
 
 ## 概要
 
-- 総スポット数: 25
-- 接続済み: 25
+- 総スポット数: 30
+- 接続済み: 30
 - 未接続: 0
 - 入口スポット: 8
 - 終点スポット: 12
@@ -54,7 +54,12 @@ CRAFT WORKSHOP
 └ CRAFT HAMMER
 
 SECRET TREE
-└ SECRET CRYSTAL
+└ ENTRANCE
+  └ ADVENTURE CAVE
+    └ CRYSTAL GROTTO
+      └ HIDDEN SANCTUARY
+        └ TREASURE ROOM
+          └ SECRET CRYSTAL
 
 HANGOUT SPOT
 └ CHILL BADGE
@@ -66,7 +71,7 @@ SUNSET DECK
 
 ## 進行数
 
-画面右上の`到達済み数 / 25`は、実際に開いた探索スポット数と連動する。
+画面右上の`到達済み数 / 30`は、実際に開いた探索スポット数と連動する。
 進行はブラウザ内へ保存され、同じスポットを再訪しても重複しない。
 
 ## 未接続確認
@@ -88,6 +93,11 @@ SUNSET DECK
 - ROPE BRIDGE
 - SUN DOCK内のチケット導線
 - LIGHT HOUSE
+- ENTRANCE
+- ADVENTURE CAVE
+- CRYSTAL GROTTO
+- HIDDEN SANCTUARY
+- TREASURE ROOM
 
 現在は既存のSUN AREA画像を仮使用している。
 
