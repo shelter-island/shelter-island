@@ -4,11 +4,11 @@ SUN AREAの探索スポットを、親子関係で辿れる1つの構造に整�
 
 ## 概要
 
-- 総スポット数: 24
-- 接続済み: 24
+- 総スポット数: 25
+- 接続済み: 25
 - 未接続: 0
 - 入口スポット: 8
-- 終点スポット: 11
+- 終点スポット: 12
 
 探索データ:
 
@@ -60,12 +60,13 @@ HANGOUT SPOT
 └ CHILL BADGE
 
 SUNSET DECK
-└ SUNSET COMPASS
+├ SUNSET COMPASS
+└ LIGHT HOUSE
 ```
 
 ## 進行数
 
-画面右上の`到達済み数 / 24`は、実際に開いた探索スポット数と連動する。
+画面右上の`到達済み数 / 25`は、実際に開いた探索スポット数と連動する。
 進行はブラウザ内へ保存され、同じスポットを再訪しても重複しない。
 
 ## 未接続確認
@@ -86,6 +87,7 @@ SUNSET DECK
 - LIBRARY
 - ROPE BRIDGE
 - SUN DOCK内のチケット導線
+- LIGHT HOUSE
 
 現在は既存のSUN AREA画像を仮使用している。
 
@@ -95,7 +97,7 @@ SUNSET DECK
 
 ### 遷移先がないスポット
 
-次の11件は、未接続ではなく探索ルートの終点。
+次の12件は、未接続ではなく探索ルートの終点。
 
 - TREE FLAG
 - BED ROOM
@@ -108,6 +110,7 @@ SUNSET DECK
 - SECRET CRYSTAL
 - CHILL BADGE
 - SUNSET COMPASS
+- LIGHT HOUSE
 
 ## 将来の変更
 

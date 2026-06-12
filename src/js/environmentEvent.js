@@ -1,3 +1,5 @@
+import { CURRENT_SEASON, getSeasonEffects } from './seasonConfig.js';
+
 export const environmentEventHistoryLimit = 5;
 
 const eventDefinitions = {
@@ -61,9 +63,12 @@ export const createEnvironmentEvent = ({
   isNight = false,
   hasTrees = false,
   hasLights = false,
+  season,
   sequence = 0,
   timestamp = new Date().toISOString(),
 }) => {
+  const activeSeason = season || CURRENT_SEASON;
+  const seasonEffects = getSeasonEffects(activeSeason);
   const candidates = Object.entries(eventDefinitions)
     .filter(([, definition]) => !definition.nightOnly || isNight)
     .filter(([type]) => type !== 'treeRustle' || hasTrees)
@@ -71,7 +76,9 @@ export const createEnvironmentEvent = ({
     .map(([type, definition]) => ({
       type,
       ...definition,
-      weight: definition.baseWeight * (definition.moodWeights[areaMoodName] || 1),
+      weight: definition.baseWeight
+        * (definition.moodWeights[areaMoodName] || 1)
+        * (seasonEffects.environmentEventWeights[type] || 1),
     }));
   const selected = chooseWeightedEvent(candidates);
   const positionDrift = () => (Math.random() - 0.5) * 6;
@@ -81,6 +88,7 @@ export const createEnvironmentEvent = ({
     type: selected.type,
     label: selected.label,
     mood: areaMoodName,
+    season: activeSeason,
     timestamp,
     duration: selected.duration + Math.round(Math.random() * 1400),
     x: selected.position.x + positionDrift(),
@@ -99,6 +107,7 @@ export const addEnvironmentEventHistory = (
     type: event.type,
     label: event.label,
     mood: event.mood,
+    season: event.season,
     timestamp: event.timestamp,
   },
 ].slice(-limit);

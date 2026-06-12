@@ -1,3 +1,5 @@
+import { getSeasonEffects } from './seasonConfig.js';
+
 const defaultHistoryLimit = 10;
 const areaMoodNames = ['calm', 'sleepy', 'lively', 'nostalgic'];
 const areaMoodReasons = {
@@ -115,10 +117,12 @@ export const createResidentMemorySummary = (history, maxSummaries = 3) => {
 export const createAreaMoodSnapshot = (
   residentHistory,
   previousMood = initialAreaMood,
+  season,
 ) => {
   const history = getRecentResidentEntries(residentHistory);
   if (history.length === 0) return previousMood;
 
+  const seasonEffects = getSeasonEffects(season);
   const observedScores = {
     calm: history.filter((entry) => (
       entry.actionType === 'stay'
@@ -139,7 +143,11 @@ export const createAreaMoodSnapshot = (
   const scores = Object.fromEntries(areaMoodNames.map((moodName) => {
     const previousScore = previousMood.scores?.[moodName] || 0;
     const observedScore = observedScores[moodName] * scale;
-    return [moodName, Number((previousScore * 0.65 + observedScore * 0.35).toFixed(2))];
+    const seasonBias = seasonEffects.moodScoreBias[moodName] || 0;
+    return [
+      moodName,
+      Number((previousScore * 0.65 + observedScore * 0.35 + seasonBias).toFixed(2)),
+    ];
   }));
   const candidateMood = areaMoodNames.reduce((strongestMood, moodName) => (
     scores[moodName] > scores[strongestMood] ? moodName : strongestMood

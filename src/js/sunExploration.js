@@ -286,7 +286,7 @@ export const createSunExplorationSpots = (assetPath) => [
     image: assetPath('images/areas/the_sun_profile.webp'),
     unlocked: true,
     parent: null,
-    children: ['sunset_compass'],
+    children: ['sunset_compass', 'light_house'],
     item: null,
     description: '夕日がいちばんきれいに見える、今日をしめくくるデッキ。',
     kind: 'VIEW POINT',
@@ -305,6 +305,17 @@ export const createSunExplorationSpots = (assetPath) => [
     item: 'sunset_compass',
     description: 'デッキの上で夕日の方角を指していた、小さなコンパス。',
     kind: 'VIEW ITEM',
+  },
+  {
+    id: 'light_house',
+    name: 'LIGHT HOUSE',
+    image: assetPath('images/areas/the_sun_profile.webp'),
+    unlocked: true,
+    parent: 'sunset_deck',
+    children: [],
+    item: null,
+    description: 'SUNSET DECKの遠くで、海へ向けてゆっくり光を回す灯台。',
+    kind: 'DISTANT LIGHT',
   },
 ];
 

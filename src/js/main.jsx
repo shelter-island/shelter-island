@@ -39,6 +39,12 @@ import {
   createSunExplorationSpots,
   sunExplorationRootIds,
 } from './sunExploration.js';
+import { CURRENT_SEASON } from './seasonConfig.js';
+import {
+  createFishEscapeReaction,
+  createFishShadow,
+  getFishShadowDelay,
+} from './fishShadow.js';
 
 const assetPath = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`;
 
@@ -260,6 +266,11 @@ function App() {
   const [residentCycles, setResidentCycles] = useState({});
   const [residentTraces, setResidentTraces] = useState([]);
   const [environmentEvent, setEnvironmentEvent] = useState(null);
+  const [fishShadow, setFishShadow] = useState(null);
+  const [fishShadowCount, setFishShadowCount] = useState(0);
+  const [lastFishShadow, setLastFishShadow] = useState(null);
+  const [escapedFishCount, setEscapedFishCount] = useState(0);
+  const [lastFishReaction, setLastFishReaction] = useState(null);
   const [areaMood, setAreaMood] = useState(initialAreaMood);
   const [, setResidentDebugVersion] = useState(0);
   const [selectedPartId, setSelectedPartId] = useState('tree');
@@ -314,6 +325,12 @@ function App() {
   const residentTraceSequenceRef = useRef(0);
   const environmentEventSequenceRef = useRef(0);
   const environmentEventHistoryRef = useRef([]);
+  const fishShadowSequenceRef = useRef(0);
+  const fishShadowElementRef = useRef(null);
+  const fishEscapeTimerRef = useRef(null);
+  const fishRemovalTimerRef = useRef(null);
+  const fishTapConsumedRef = useRef(false);
+  const fishTapResetTimerRef = useRef(null);
   const areaMoodSampleCountRef = useRef(0);
   const areaMoodHistoryRef = useRef([]);
   const residentHistoryRef = useRef(
@@ -333,7 +350,11 @@ function App() {
     if (areaMoodSampleCountRef.current >= 10) {
       areaMoodSampleCountRef.current = 0;
       setAreaMood((currentMood) => {
-        const nextMood = createAreaMoodSnapshot(residentHistoryRef.current, currentMood);
+        const nextMood = createAreaMoodSnapshot(
+          residentHistoryRef.current,
+          currentMood,
+          CURRENT_SEASON,
+        );
         const historyEntry = createAreaMoodHistoryEntry(currentMood, nextMood);
 
         if (historyEntry) {
@@ -400,6 +421,61 @@ function App() {
       3,
     )
     : [];
+  const triggerFishEscape = (reason, expectedFishId = null) => {
+    setFishShadow((currentShadow) => {
+      if (
+        !currentShadow
+        || currentShadow.escaped
+        || (expectedFishId && currentShadow.id !== expectedFishId)
+      ) {
+        return currentShadow;
+      }
+
+      const escapedShadow = createFishEscapeReaction(currentShadow, reason);
+      window.clearTimeout(fishRemovalTimerRef.current);
+      fishRemovalTimerRef.current = window.setTimeout(() => {
+        setFishShadow((visibleShadow) => (
+          visibleShadow?.id === escapedShadow.id ? null : visibleShadow
+        ));
+      }, 1550);
+      setEscapedFishCount((currentCount) => currentCount + 1);
+      setLastFishReaction({
+        fishId: escapedShadow.id,
+        ...escapedShadow.reaction,
+      });
+      return escapedShadow;
+    });
+  };
+  const handleFishShadowPointerDown = (event) => {
+    if (selectedSpot.id !== 'sun_dock' || !fishShadow || fishShadow.escaped) return;
+
+    const fishElement = fishShadowElementRef.current;
+    if (!fishElement) return;
+
+    const fishBounds = fishElement.getBoundingClientRect();
+    const fishCenterX = fishBounds.left + fishBounds.width / 2;
+    const fishCenterY = fishBounds.top + fishBounds.height / 2;
+    const distance = Math.hypot(
+      event.clientX - fishCenterX,
+      event.clientY - fishCenterY,
+    );
+
+    if (distance <= 56) {
+      fishTapConsumedRef.current = true;
+      window.clearTimeout(fishTapResetTimerRef.current);
+      fishTapResetTimerRef.current = window.setTimeout(() => {
+        fishTapConsumedRef.current = false;
+      }, 500);
+      triggerFishEscape('nearby_tap', fishShadow.id);
+    }
+  };
+  const handleSunDockDiscoveryClick = () => {
+    if (fishTapConsumedRef.current) {
+      fishTapConsumedRef.current = false;
+      return;
+    }
+    if (selectedSpotChildren[0]) visitSpot(selectedSpotChildren[0]);
+  };
   const inventory = useMemo(
     () => buildParts.map((part) => ({
       ...part,
@@ -554,6 +630,7 @@ function App() {
           isNight,
           hasTrees: placedParts.some((part) => part.partId === 'tree'),
           hasLights: placedParts.some((part) => part.partId === 'light'),
+          season: CURRENT_SEASON,
           sequence: environmentEventSequenceRef.current,
         });
         environmentEventSequenceRef.current += 1;
@@ -582,6 +659,66 @@ function App() {
       setEnvironmentEvent(null);
     };
   }, [areaMood.name, isNight, placedParts, screen]);
+
+  useEffect(() => {
+    if (screen !== 'spot' || selectedSpot.id !== 'sun_dock') {
+      setFishShadow(null);
+      return undefined;
+    }
+
+    let shadowTimer;
+    let isFirstShadow = true;
+
+    const scheduleNextShadow = () => {
+      shadowTimer = window.setTimeout(() => {
+        const nextFishShadow = createFishShadow({
+          sequence: fishShadowSequenceRef.current,
+          season: CURRENT_SEASON,
+          isNight,
+          areaMoodName: areaMood.name,
+        });
+        fishShadowSequenceRef.current += 1;
+        setFishShadow(nextFishShadow);
+        setFishShadowCount((currentCount) => currentCount + 1);
+        setLastFishShadow(nextFishShadow);
+
+        if (nextFishShadow.willEscapeNaturally) {
+          fishEscapeTimerRef.current = window.setTimeout(() => {
+            triggerFishEscape('natural', nextFishShadow.id);
+          }, nextFishShadow.naturalEscapeDelay);
+        }
+
+        fishRemovalTimerRef.current = window.setTimeout(() => {
+          setFishShadow((currentShadow) => (
+            currentShadow?.id === nextFishShadow.id ? null : currentShadow
+          ));
+        }, nextFishShadow.duration);
+
+        isFirstShadow = false;
+        scheduleNextShadow();
+      }, getFishShadowDelay({
+        season: CURRENT_SEASON,
+        isNight,
+        areaMoodName: areaMood.name,
+        isFirstShadow,
+        isDebug: SHOW_RESIDENT_DEBUG,
+      }));
+    };
+
+    scheduleNextShadow();
+
+    return () => {
+      window.clearTimeout(shadowTimer);
+      window.clearTimeout(fishRemovalTimerRef.current);
+      fishRemovalTimerRef.current = null;
+      window.clearTimeout(fishEscapeTimerRef.current);
+      fishEscapeTimerRef.current = null;
+      window.clearTimeout(fishTapResetTimerRef.current);
+      fishTapResetTimerRef.current = null;
+      fishTapConsumedRef.current = false;
+      setFishShadow(null);
+    };
+  }, [areaMood.name, isNight, screen, selectedSpot.id]);
 
   useEffect(() => {
     if (screen !== 'build') return undefined;
@@ -1204,6 +1341,7 @@ function App() {
           data-lights={sunAreaStats.lights}
           data-crates={sunAreaStats.crates}
           data-area-mood={areaMood.name}
+          data-season={CURRENT_SEASON}
           aria-label="SUN AREA build prototype"
         >
           <header className="buildTopbar">
@@ -1442,6 +1580,8 @@ function App() {
             <aside className="residentDebugPanel" aria-label="Resident debug information">
               <b>RESIDENT DEBUG</b>
               <div className="residentDebugMood">
+                season: {CURRENT_SEASON}
+                {' · '}
                 mood: {areaMood.name}
                 {' · '}
                 {Object.entries(areaMood.scores)
@@ -1601,7 +1741,11 @@ function App() {
       )}
 
       {screen === 'spot' && (
-        <section className="routePage" aria-label={`${selectedSpot.name} spot page`}>
+        <section
+          className={`routePage ${isNight ? 'isNight' : 'isDay'}`}
+          data-season={CURRENT_SEASON}
+          aria-label={`${selectedSpot.name} spot page`}
+        >
           <header className="sunTopbar">
             <button type="button" className="backButton" onClick={backFromSpot}>BACK</button>
             <div>
@@ -1619,7 +1763,7 @@ function App() {
           </header>
 
           <div className="routeStage">
-            <div className="routeVisual">
+            <div className="routeVisual" onPointerDown={handleFishShadowPointerDown}>
               <img src={selectedSpot.image} alt={selectedSpot.name} loading="lazy" decoding="async" />
               {selectedSpot.item && (
                 <button
@@ -1642,6 +1786,70 @@ function App() {
                   <span>ROPE BRIDGE</span>
                 </button>
               )}
+              {selectedSpot.id === 'sun_dock' && selectedSpotChildren[0] && (
+                <>
+                  <div className="fishShadowLayer" aria-hidden="true">
+                    {fishShadow && (
+                      <span
+                        key={fishShadow.id}
+                        ref={fishShadowElementRef}
+                        className={[
+                          'fishShadow',
+                          `is-${fishShadow.direction}`,
+                          fishShadow.escaped ? 'isEscaping' : '',
+                          fishShadow.escapeDirection ? `escapes-${fishShadow.escapeDirection}` : '',
+                        ].filter(Boolean).join(' ')}
+                        style={{
+                          left: `${fishShadow.x}%`,
+                          top: `${fishShadow.y}%`,
+                          '--fish-travel': `${fishShadow.direction === 'right' ? fishShadow.travel : -fishShadow.travel}px`,
+                          '--fish-escape-travel': `${fishShadow.escapeDirection === 'left' ? -fishShadow.escapeTravel : (fishShadow.escapeTravel || 0)}px`,
+                          '--fish-reaction-start': `${fishShadow.reactionStartOffset || 0}px`,
+                          '--fish-facing': fishShadow.escapeDirection === 'left' ? -1 : 1,
+                          animationDuration: fishShadow.escaped
+                            ? '0ms'
+                            : `${fishShadow.shadowDuration}ms`,
+                        }}
+                      >
+                        <i />
+                        <em
+                          style={{
+                            animationDelay: fishShadow.escaped
+                              ? '0ms'
+                              : `${fishShadow.rippleDelay}ms`,
+                            animationDuration: fishShadow.escaped
+                              ? '1400ms'
+                              : `${fishShadow.rippleDuration}ms`,
+                          }}
+                        />
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="sunDockDiscovery"
+                    onClick={handleSunDockDiscoveryClick}
+                    aria-label="Discover SUN DOCK route"
+                  >
+                    <i aria-hidden="true" />
+                    <i aria-hidden="true" />
+                    <span>SUN DOCK</span>
+                  </button>
+                </>
+              )}
+              {selectedSpot.id === 'sunset_deck'
+                && sunExplorationById.light_house
+                && (
+                  <button
+                    type="button"
+                    className="lightHouseDiscovery"
+                    onClick={() => visitSpot(sunExplorationById.light_house)}
+                    aria-label="Discover LIGHT HOUSE"
+                  >
+                    <i aria-hidden="true" />
+                    <span>LIGHT HOUSE</span>
+                  </button>
+                )}
             </div>
 
             <aside className="routePanel">
@@ -1680,6 +1888,24 @@ function App() {
               )}
             </aside>
           </div>
+
+          {SHOW_RESIDENT_DEBUG && selectedSpot.id === 'sun_dock' && (
+            <aside className="fishShadowDebug" aria-label="Fish shadow debug information">
+              fish shadows: {fishShadowCount}
+              {' · '}
+              escaped: {escapedFishCount}
+              <span>
+                last: {lastFishShadow
+                  ? `${lastFishShadow.timeOfDay} · ${lastFishShadow.mood} · ${lastFishShadow.timestamp}`
+                  : 'pending'}
+              </span>
+              <span>
+                reaction: {lastFishReaction
+                  ? `${lastFishReaction.reason} · ${lastFishReaction.direction} · ${lastFishReaction.timestamp}`
+                  : 'pending'}
+              </span>
+            </aside>
+          )}
         </section>
       )}
 

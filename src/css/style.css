@@ -1584,6 +1584,107 @@ button {
   }
 }
 
+@keyframes sunDockReflection {
+  0%,
+  100% {
+    opacity: 0.1;
+    transform: translateX(-8px) skewX(-12deg) scaleX(0.88);
+  }
+
+  46% {
+    opacity: 0.26;
+    transform: translateX(5px) skewX(-8deg) scaleX(1);
+  }
+
+  64% {
+    opacity: 0.15;
+    transform: translateX(1px) skewX(-10deg) scaleX(0.94);
+  }
+}
+
+@keyframes fishShadowPass {
+  0% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+
+  22% {
+    opacity: 0.16;
+  }
+
+  72% {
+    opacity: 0.12;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(var(--fish-travel));
+  }
+}
+
+@keyframes fishShadowRipple {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.45);
+  }
+
+  24% {
+    opacity: 0.12;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.5);
+  }
+}
+
+@keyframes fishShadowEscape {
+  0% {
+    opacity: 0.15;
+    transform: translateX(0) scaleX(var(--fish-facing));
+  }
+
+  38% {
+    opacity: 0.1;
+    transform: translateX(calc(var(--fish-escape-travel) * 0.36)) scaleX(var(--fish-facing));
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(var(--fish-escape-travel)) scaleX(var(--fish-facing));
+  }
+}
+
+@keyframes fishEscapeRipple {
+  0% {
+    opacity: 0.14;
+    transform: translate(-50%, -50%) scale(0.55);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.75);
+  }
+}
+
+@keyframes lightHouseSweep {
+  0%,
+  100% {
+    opacity: 0.1;
+    transform: rotate(-5deg) scale(0.76);
+  }
+
+  42% {
+    opacity: 0.34;
+    transform: rotate(5deg) scale(1);
+  }
+
+  55% {
+    opacity: 0.16;
+    transform: rotate(1deg) scale(0.82);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sunResident,
   .sunResident img,
@@ -1593,7 +1694,11 @@ button {
   .environmentEvent i,
   .event-shootingStar::before,
   .treeFlagDiscovery::before,
-  .ropeBridgeDiscovery i {
+  .ropeBridgeDiscovery i,
+  .sunDockDiscovery i,
+  .fishShadow,
+  .fishShadow em,
+  .lightHouseDiscovery i {
     animation: none;
     transition-duration: 0.01ms;
   }
@@ -2976,6 +3081,281 @@ h1 {
   box-shadow: 0 1px 7px rgba(126, 226, 255, 0.3);
 }
 
+.sunDockDiscovery {
+  position: absolute;
+  right: 7%;
+  bottom: 9%;
+  width: 190px;
+  min-height: 54px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 241, 199, 0.72);
+  cursor: pointer;
+  overflow: visible;
+  touch-action: manipulation;
+}
+
+.fishShadowLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fishShadow {
+  position: absolute;
+  width: 25px;
+  height: 9px;
+  opacity: 0;
+  animation: fishShadowPass ease-in-out both;
+}
+
+.fishShadow i {
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  width: 18px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(3, 10, 12, 0.46);
+  filter: blur(1.3px);
+}
+
+.fishShadow i::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: 0;
+  width: 6px;
+  height: 5px;
+  background: rgba(3, 10, 12, 0.32);
+  clip-path: polygon(0 50%, 100% 0, 100% 100%);
+}
+
+.fishShadow.is-left i {
+  transform: scaleX(-1);
+}
+
+.fishShadow em {
+  position: absolute;
+  left: 14px;
+  top: 5px;
+  width: 20px;
+  height: 7px;
+  border: 1px solid rgba(151, 231, 255, 0.18);
+  border-radius: 50%;
+  opacity: 0;
+  animation: fishShadowRipple ease-out both;
+}
+
+.fishShadow.isEscaping {
+  animation: none;
+  opacity: 1;
+  transform: translateX(var(--fish-reaction-start));
+}
+
+.fishShadow.isEscaping i {
+  animation: fishShadowEscape 900ms ease-out both;
+  filter: blur(1.6px);
+}
+
+.fishShadow.isEscaping em {
+  animation: fishEscapeRipple 1400ms ease-out both;
+}
+
+.fishShadow.isEscaping.escapes-left i {
+  transform: scaleX(-1);
+}
+
+.fishShadow.isEscaping.escapes-right i {
+  transform: scaleX(1);
+}
+
+.fishShadowDebug {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 30;
+  width: min(250px, calc(100% - 24px));
+  padding: 6px 8px;
+  border: 1px solid rgba(151, 231, 255, 0.26);
+  background: rgba(5, 6, 7, 0.72);
+  color: rgba(151, 231, 255, 0.82);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9px;
+  line-height: 1.35;
+  pointer-events: none;
+}
+
+.fishShadowDebug span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sunDockDiscovery i {
+  position: absolute;
+  right: 6px;
+  top: 14px;
+  width: 150px;
+  height: 13px;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at center, rgba(255, 248, 218, 0.2), transparent 64%),
+    linear-gradient(90deg, transparent, rgba(126, 226, 255, 0.14), transparent);
+  filter: blur(0.4px);
+  opacity: 0.18;
+  transform: skewX(-12deg);
+  animation: sunDockReflection 6.8s ease-in-out infinite;
+}
+
+.sunDockDiscovery i:nth-child(2) {
+  right: 30px;
+  top: 29px;
+  width: 108px;
+  height: 8px;
+  opacity: 0.12;
+  animation-delay: 1.7s;
+  animation-duration: 7.6s;
+}
+
+.routePage[data-season="summer"] .sunDockDiscovery i {
+  filter: blur(0.4px) brightness(1.08);
+}
+
+.sunDockDiscovery span {
+  position: absolute;
+  right: 4px;
+  bottom: 0;
+  padding: 3px 5px;
+  background: rgba(5, 6, 7, 0.34);
+  color: rgba(255, 241, 199, 0.72);
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0.05;
+  transform: translateY(2px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.sunDockDiscovery:hover,
+.sunDockDiscovery:focus-visible,
+.sunDockDiscovery:active {
+  outline: none;
+}
+
+.sunDockDiscovery:hover span,
+.sunDockDiscovery:focus-visible span,
+.sunDockDiscovery:active span {
+  opacity: 0.9;
+  transform: translateY(0);
+}
+
+.sunDockDiscovery:hover i,
+.sunDockDiscovery:focus-visible i,
+.sunDockDiscovery:active i {
+  opacity: 0.46;
+  background:
+    radial-gradient(ellipse at center, rgba(255, 248, 218, 0.38), transparent 64%),
+    linear-gradient(90deg, transparent, rgba(126, 226, 255, 0.28), transparent);
+}
+
+.lightHouseDiscovery {
+  position: absolute;
+  right: 10%;
+  top: 13%;
+  width: 82px;
+  min-height: 52px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 241, 199, 0.72);
+  cursor: pointer;
+  overflow: visible;
+  touch-action: manipulation;
+}
+
+.lightHouseDiscovery i {
+  position: absolute;
+  right: 18px;
+  top: 14px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 241, 199, 0.22);
+  box-shadow:
+    0 0 6px rgba(255, 212, 71, 0.2),
+    -16px 1px 12px rgba(255, 241, 199, 0.08);
+  animation: lightHouseSweep 7.2s ease-in-out infinite;
+}
+
+.lightHouseDiscovery i::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  top: 3px;
+  width: 34px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 241, 199, 0.16));
+  transform: rotate(-8deg);
+  transform-origin: right center;
+}
+
+.lightHouseDiscovery span {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 3px 5px;
+  background: rgba(5, 6, 7, 0.34);
+  color: rgba(255, 241, 199, 0.72);
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0.05;
+  transform: translateY(2px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.routePage.isNight .lightHouseDiscovery i {
+  background: rgba(255, 241, 199, 0.42);
+  box-shadow:
+    0 0 9px rgba(255, 212, 71, 0.38),
+    -18px 1px 15px rgba(255, 241, 199, 0.14);
+}
+
+.routePage.isNight .lightHouseDiscovery i::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 241, 199, 0.28));
+}
+
+.routePage[data-season="night_breeze"] .lightHouseDiscovery i {
+  animation-duration: 8.4s;
+}
+
+.lightHouseDiscovery:hover,
+.lightHouseDiscovery:focus-visible,
+.lightHouseDiscovery:active {
+  outline: none;
+}
+
+.lightHouseDiscovery:hover span,
+.lightHouseDiscovery:focus-visible span,
+.lightHouseDiscovery:active span {
+  opacity: 0.9;
+  transform: translateY(0);
+}
+
+.lightHouseDiscovery:hover i,
+.lightHouseDiscovery:focus-visible i,
+.lightHouseDiscovery:active i {
+  background: rgba(255, 241, 199, 0.72);
+  box-shadow:
+    0 0 13px rgba(255, 212, 71, 0.54),
+    -20px 1px 18px rgba(255, 241, 199, 0.2);
+}
+
 .routePanel {
   display: flex;
   flex-direction: column;
@@ -3421,6 +3801,38 @@ h1 {
   }
 
   .ropeBridgeDiscovery span {
+    padding: 2px 4px;
+    font-size: 7px;
+  }
+
+  .sunDockDiscovery {
+    right: 5%;
+    bottom: 8%;
+    width: 158px;
+    min-height: 48px;
+  }
+
+  .sunDockDiscovery i {
+    width: 126px;
+  }
+
+  .sunDockDiscovery i:nth-child(2) {
+    width: 92px;
+  }
+
+  .sunDockDiscovery span {
+    padding: 2px 4px;
+    font-size: 7px;
+  }
+
+  .lightHouseDiscovery {
+    right: 8%;
+    top: 10%;
+    width: 76px;
+    min-height: 48px;
+  }
+
+  .lightHouseDiscovery span {
     padding: 2px 4px;
     font-size: 7px;
   }
