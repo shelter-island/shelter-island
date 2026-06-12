@@ -12,6 +12,19 @@ const randomBetween = (minimum, maximum) => (
   minimum + Math.random() * (maximum - minimum)
 );
 
+const sunDockWaterZones = [
+  {
+    x: [25, 38],
+    y: [7, 18],
+    travel: [12, 20],
+  },
+  {
+    x: [29, 40],
+    y: [20, 30],
+    travel: [10, 18],
+  },
+];
+
 export const getFishShadowDelay = ({
   season = CURRENT_SEASON,
   isNight = false,
@@ -42,6 +55,9 @@ export const createFishShadow = ({
   areaMoodName = 'calm',
   timestamp = new Date().toISOString(),
 } = {}) => {
+  const waterZone = sunDockWaterZones[
+    Math.floor(Math.random() * sunDockWaterZones.length)
+  ];
   const shadowDuration = Math.round(randomBetween(3400, 4300));
   const rippleDuration = Math.round(
     randomBetween(2100, 2800) * (areaMoodName === 'calm' ? 1.18 : 1),
@@ -62,9 +78,9 @@ export const createFishShadow = ({
     mood: areaMoodName,
     timestamp,
     direction: Math.random() > 0.5 ? 'right' : 'left',
-    x: randomBetween(18, 55),
-    y: randomBetween(57, 75),
-    travel: Math.round(randomBetween(34, 58)),
+    x: randomBetween(...waterZone.x),
+    y: randomBetween(...waterZone.y),
+    travel: Math.round(randomBetween(...waterZone.travel)),
     shadowDuration,
     rippleDuration,
     rippleDelay: Math.round(shadowDuration * 0.44),
@@ -90,7 +106,7 @@ export const createFishEscapeReaction = (
   const escapeDirection = fishShadow.mood === 'nostalgic'
     ? 'right'
     : fishShadow.direction;
-  const baseTravel = fishShadow.season === 'summer' ? 56 : 48;
+  const baseTravel = fishShadow.season === 'summer' ? 24 : 20;
   const escapeTravel = Math.round(
     baseTravel * (fishShadow.mood === 'calm' ? 0.84 : 1),
   );
