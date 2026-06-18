@@ -221,9 +221,18 @@ button {
 }
 
 .residentDebugHistory,
+.residentDebugAffection,
 .residentDebugSummary {
   display: grid;
   gap: 1px;
+}
+
+.residentDebugAffection {
+  margin-bottom: 3px;
+  color: rgba(164, 235, 137, 0.82);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .residentDebugHistory span {
@@ -1020,6 +1029,23 @@ button {
   animation: residentPresence 2.4s ease-in-out forwards;
 }
 
+.residentAffectionIcon {
+  position: absolute;
+  left: 48%;
+  top: -8%;
+  display: grid;
+  place-items: center;
+  min-width: 16px;
+  min-height: 16px;
+  color: rgba(255, 247, 218, 0.95);
+  font-size: 12px;
+  line-height: 1;
+  text-shadow: 0 2px 5px rgba(34, 27, 31, 0.36);
+  animation: residentAffectionIcon 3s ease-in-out forwards;
+  pointer-events: none;
+  user-select: none;
+}
+
 .sunResident.sit {
   z-index: 4;
   --resident-pose-scale: 0.82;
@@ -1430,6 +1456,20 @@ button {
   }
 }
 
+@keyframes residentAffectionIcon {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 4px) scale(0.86);
+  }
+
+  16%,
+  72% {
+    opacity: 0.9;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
 @keyframes residentSkyWatch {
   0%,
   100% {
@@ -1689,6 +1729,7 @@ button {
   .sunResident,
   .sunResident img,
   .residentPresence,
+  .residentAffectionIcon,
   .residentTrace,
   .environmentEvent,
   .environmentEvent i,

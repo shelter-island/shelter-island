@@ -114,6 +114,65 @@ export const createResidentMemorySummary = (history, maxSummaries = 3) => {
   return summaries.slice(0, normalizeLimit(maxSummaries));
 };
 
+export const createResidentAffinitySummary = (history) => {
+  if (!Array.isArray(history) || history.length === 0) {
+    return {
+      spot: '',
+      score: 0,
+      source: 'history pending',
+    };
+  }
+
+  const validHistory = history.filter((entry) => (
+    entry
+    && typeof entry === 'object'
+    && typeof entry.spot === 'string'
+    && entry.spot !== 'island'
+  ));
+  if (validHistory.length === 0) {
+    return {
+      spot: '',
+      score: 0,
+      source: 'no place signal',
+    };
+  }
+
+  const scores = validHistory.reduce((currentScores, entry, index) => {
+    const recencyWeight = 0.75 + (index / Math.max(1, validHistory.length - 1)) * 0.5;
+    const actionWeight = entry.actionType === 'stay'
+      ? 1.35
+      : entry.actionType === 'favorite'
+        ? 1.2
+        : entry.actionType === 'special'
+          ? 1.15
+          : 1;
+
+    return {
+      ...currentScores,
+      [entry.spot]: (currentScores[entry.spot] || 0) + recencyWeight * actionWeight,
+    };
+  }, {});
+
+  const [spot = '', rawScore = 0] = Object.entries(scores)
+    .sort(([, scoreA], [, scoreB]) => scoreB - scoreA)[0] || [];
+  const totalScore = Object.values(scores).reduce((total, score) => total + score, 0);
+  const score = totalScore > 0 ? Number((rawScore / totalScore).toFixed(2)) : 0;
+
+  if (!spot || score < 0.28) {
+    return {
+      spot: '',
+      score,
+      source: 'weak place signal',
+    };
+  }
+
+  return {
+    spot,
+    score,
+    source: `${spot} from recent residentHistory`,
+  };
+};
+
 export const createAreaMoodSnapshot = (
   residentHistory,
   previousMood = initialAreaMood,

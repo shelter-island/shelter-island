@@ -5,6 +5,7 @@ import {
   createAreaMemorySummary,
   createAreaMoodHistoryEntry,
   createAreaMoodSnapshot,
+  createResidentAffinitySummary,
   createResidentMemorySummary,
   getAreaMoodHistory,
   getResidentHistory,
@@ -99,6 +100,38 @@ const defaultPlacedParts = [];
 const partById = Object.fromEntries(buildParts.map((part) => [part.id, part]));
 
 const residentDefinitions = createResidentDefinitions(assetPath);
+
+const residentAffectionIcons = {
+  calm: [
+    { icon: '🌿', weight: 4 },
+    { icon: '😊', weight: 2 },
+    { icon: '🎵', weight: 1 },
+    { icon: '✨', weight: 1 },
+  ],
+  sleepy: [
+    { icon: '😴', weight: 5 },
+    { icon: '🌿', weight: 2 },
+    { icon: '😊', weight: 1 },
+  ],
+  nostalgic: [
+    { icon: '🌿', weight: 2 },
+    { icon: '🎵', weight: 2 },
+    { icon: '😊', weight: 1 },
+    { icon: '✨', weight: 1 },
+  ],
+  lively: [
+    { icon: '✨', weight: 4 },
+    { icon: '🎵', weight: 2 },
+    { icon: '😊', weight: 2 },
+    { icon: '🌿', weight: 1 },
+  ],
+};
+
+const getResidentAffectionDelay = () => 60000 + Math.round(Math.random() * 60000);
+
+const chooseResidentAffectionIcon = (areaMoodName) => (
+  chooseWeightedSpot(residentAffectionIcons[areaMoodName] || residentAffectionIcons.calm).icon
+);
 
 const loadBuildSave = () => {
   try {
@@ -397,6 +430,15 @@ function App() {
   const residentDebugEntries = SHOW_RESIDENT_DEBUG
     ? residents.map((resident) => ({
       residentId: resident.id,
+      favoriteSpot: resident.favoriteSpot,
+      affinity: createResidentAffinitySummary(
+        getResidentHistory(
+          residentHistoryRef.current,
+          resident.id,
+          residentHistoryLimit,
+        ),
+      ),
+      currentAffectionSource: resident.affectionSource || '',
       history: getResidentHistory(residentHistoryRef.current, resident.id, 5),
       summaries: createResidentMemorySummary(
         getResidentHistory(
@@ -725,6 +767,13 @@ function App() {
 
     const chooseResidentSpot = (resident) => {
       const personality = residentPersonalities[resident.personality] || residentPersonalities.relaxed;
+      const affinitySummary = createResidentAffinitySummary(
+        getResidentHistory(
+          residentHistoryRef.current,
+          resident.id,
+          residentHistoryLimit,
+        ),
+      );
       const trees = placedParts.filter((placedPart) => placedPart.partId === 'tree');
       const benches = placedParts.filter((placedPart) => placedPart.partId === 'bench');
       const lights = placedParts.filter((placedPart) => placedPart.partId === 'light');
@@ -810,6 +859,7 @@ function App() {
               isNight,
               resident.favoriteSpot,
               areaMood.name,
+              affinitySummary,
             )
           )),
         );
@@ -908,6 +958,7 @@ function App() {
             isNight,
             resident.favoriteSpot,
             areaMood.name,
+            affinitySummary,
           )
         )),
       );
@@ -948,6 +999,7 @@ function App() {
         ...nextSpot,
         direction: nextSpot.facing || (nextSpot.x < currentResident.x ? 'left' : 'right'),
         presence: '',
+        affectionIcon: '',
         isMoving: true,
       }));
 
@@ -1032,6 +1084,53 @@ function App() {
       timers.forEach((timer) => window.clearTimeout(timer));
     };
   }, [areaMood.name, isNight, placedParts, residentCycles, residents.length, screen]);
+
+  useEffect(() => {
+    if (screen !== 'build') return undefined;
+
+    const timers = new Set();
+    const schedule = (callback, delay) => {
+      const timer = window.setTimeout(() => {
+        timers.delete(timer);
+        callback();
+      }, delay);
+      timers.add(timer);
+    };
+
+    const showAffectionIcon = (residentId) => {
+      const icon = chooseResidentAffectionIcon(areaMood.name);
+      setResidents((currentResidents) => currentResidents.map((resident) => (
+        resident.id === residentId
+          ? {
+            ...resident,
+            affectionIcon: icon,
+            affectionSource: `${areaMood.name} areaMood`,
+          }
+          : resident
+      )));
+
+      schedule(() => {
+        setResidents((currentResidents) => currentResidents.map((resident) => (
+          resident.id === residentId
+            ? { ...resident, affectionIcon: '' }
+            : resident
+        )));
+      }, 3000);
+
+      schedule(() => showAffectionIcon(residentId), getResidentAffectionDelay());
+    };
+
+    residents.forEach((resident, index) => {
+      schedule(
+        () => showAffectionIcon(resident.id),
+        getResidentAffectionDelay() + index * 5000,
+      );
+    });
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [areaMood.name, residents.length, screen]);
 
   const addFoundCard = (cardId) => {
     setFoundCards((currentCards) => {
@@ -1501,6 +1600,9 @@ function App() {
                   {resident.presence && (
                     <span className="residentPresence" aria-hidden="true">{resident.presence}</span>
                   )}
+                  {resident.affectionIcon && (
+                    <span className="residentAffectionIcon" aria-hidden="true">{resident.affectionIcon}</span>
+                  )}
                 </div>
               ))}
 
@@ -1618,12 +1720,22 @@ function App() {
               </div>
               {residentDebugEntries.map(({
                 residentId,
+                favoriteSpot,
+                affinity,
+                currentAffectionSource,
                 history,
                 summaries,
                 traceCount,
               }) => (
                 <section key={residentId}>
                   <strong>{residentId} · traces {traceCount}</strong>
+                  <div className="residentDebugAffection">
+                    favorite {favoriteSpot || 'none'}
+                    {' · '}
+                    score {affinity.score.toFixed(2)}
+                    {' · '}
+                    source {currentAffectionSource || affinity.source}
+                  </div>
                   <div className="residentDebugHistory">
                     {history.length > 0
                       ? history.map((entry, index) => (

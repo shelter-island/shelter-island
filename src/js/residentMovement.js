@@ -38,6 +38,7 @@ export const applyPersonalityToSpot = (
   isNight,
   favoriteSpot,
   areaMoodName,
+  affinitySummary,
 ) => {
   const period = isNight ? 'night' : 'day';
   const destinationMultiplier = personality.destinationWeights[period][spot.kind] || 1;
@@ -48,13 +49,19 @@ export const applyPersonalityToSpot = (
     ? moodEffects.dockWeightMultiplier
     : 1;
   const isFavorite = spot.kind === favoriteSpot;
+  const affectionScore = Number(affinitySummary?.score) || 0;
+  const isAffectionSpot = spot.kind === affinitySummary?.spot;
+  const affectionMultiplier = isAffectionSpot
+    ? 1.2 + Math.min(0.08, Math.max(0, affectionScore - 0.28) * 0.2)
+    : 1;
 
   return {
     ...spot,
     weight: spot.weight
       * destinationMultiplier
       * moodDestinationMultiplier
-      * (isFavorite ? favoriteModifiers.weightMultiplier || 1 : 1),
+      * (isFavorite ? favoriteModifiers.weightMultiplier || 1 : 1)
+      * affectionMultiplier,
     pauseBonus: spot.pauseBonus
       + pauseBonus
       + (isFavorite ? favoriteModifiers.pauseBonus || 0 : 0),
@@ -65,5 +72,8 @@ export const applyPersonalityToSpot = (
         : 0),
     ),
     isFavorite,
+    isAffectionSpot,
+    affectionScore,
+    affectionSource: isAffectionSpot ? affinitySummary?.source || '' : '',
   };
 };
