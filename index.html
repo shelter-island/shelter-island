@@ -3,10 +3,84 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="NO LIMIT CREW ISLANDの世界へ入るための、島マップ中心のワールドサイトです。"
+    />
     <title>NO LIMIT CREW ISLAND</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script type="module" src="./script.js"></script>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="./src/js/main.jsx"></script>
+    <header class="site-header" aria-label="NO LIMIT CREW ISLAND">
+      <a class="site-logo" href="#top">NO LIMIT CREW ISLAND</a>
+      <nav class="site-nav" aria-label="ページ内ナビゲーション">
+        <a href="#world">WORLD</a>
+        <a href="#crew">CREW</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="top" aria-label="HERO">
+        <div class="hero-noise" aria-hidden="true"></div>
+        <div class="hero-copy">
+          <p class="kicker">NO WAR, NO LIMIT.</p>
+          <h1>NO LIMIT CREW ISLAND</h1>
+          <p class="hero-line">Welcome to the World.</p>
+          <p class="hero-text reveal-on-scroll">
+            ここは普通のホームページではない。SHELTER CITYを中心に、
+            それぞれのCREWが生きる島へ入るための入口。
+          </p>
+        </div>
+        <a class="scroll-cue" href="#world" aria-label="WORLDへスクロール">
+          <span>ENTER THE MAP</span>
+          <i aria-hidden="true"></i>
+        </a>
+      </section>
+
+      <section class="world-section" id="world" aria-label="WORLD / ISLAND MAP">
+        <div class="section-intro reveal-on-scroll">
+          <p class="kicker">WORLD / ISLAND MAP</p>
+          <h2>SHELTER CITYを中心に、島はつながっている。</h2>
+          <p>
+            THE SUN、GROW、MAYUKI、QUEEN BEE、PEACE、CHOPPER。
+            色の違うエリアが橋で結ばれ、CREWたちの物語がここから始まる。
+          </p>
+        </div>
+
+        <div class="map-stage reveal-on-scroll">
+          <div class="map-frame">
+            <img
+              class="island-map"
+              src="/images/world/map/no-limit-crew-island.png"
+              alt="NO LIMIT CREW ISLANDの全体マップ"
+              width="1536"
+              height="1024"
+            />
+            <div class="map-pins" id="mapPins" aria-label="マップ上のCREW名"></div>
+          </div>
+          <p class="map-note">
+            Tap names later. For now, feel the island before entering each crew.
+          </p>
+        </div>
+      </section>
+
+      <section class="crew-section" id="crew" aria-label="CREW / キャラクター一覧">
+        <div class="section-intro reveal-on-scroll">
+          <p class="kicker">CREW / CHARACTER CARDS</p>
+          <h2>島にいるCREWたち。</h2>
+          <p>
+            ここではカード画像そのものを主役にする。名前、一言、カラーは
+            データで管理し、あとから新しいCREWを増やせるようにしている。
+          </p>
+        </div>
+
+        <div class="crew-grid" id="crewGrid" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>NO LIMIT CREW ISLAND / WORLD GATE</p>
+    </footer>
   </body>
 </html>
