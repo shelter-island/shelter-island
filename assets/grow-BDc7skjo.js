@@ -1,0 +1,1 @@
+import"./modulepreload-polyfill-Dezn_h7o.js";window.location.replace(`./crew-detail.html?id=grow`);
