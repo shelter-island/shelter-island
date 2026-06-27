@@ -6,6 +6,7 @@ export default {
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
+        crewDetail: resolve(__dirname, 'crew-detail.html'),
         grow: resolve(__dirname, 'grow.html'),
       },
     },

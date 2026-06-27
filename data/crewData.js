@@ -11,6 +11,7 @@ export const crew = [
     image: assetPath('images/world/crew/the-sun.png'),
     x: '30%',
     y: '18%',
+    detailUrl: assetPath('crew-detail.html?id=the-sun'),
   },
   {
     id: 'grow',
@@ -22,7 +23,7 @@ export const crew = [
     image: assetPath('images/world/crew/grow.png'),
     x: '57%',
     y: '18%',
-    detailUrl: assetPath('grow.html'),
+    detailUrl: assetPath('crew-detail.html?id=grow'),
   },
   {
     id: 'mayuki',
@@ -34,6 +35,7 @@ export const crew = [
     image: assetPath('images/world/crew/mayuki.png'),
     x: '22%',
     y: '34%',
+    detailUrl: assetPath('crew-detail.html?id=mayuki'),
   },
   {
     id: 'baby-face',
@@ -45,6 +47,7 @@ export const crew = [
     image: assetPath('images/world/crew/baby-face.png'),
     x: '84%',
     y: '39%',
+    detailUrl: assetPath('crew-detail.html?id=baby-face'),
   },
   {
     id: 'queen-bee',
@@ -56,6 +59,7 @@ export const crew = [
     image: assetPath('images/world/crew/queen-bee.png'),
     x: '18%',
     y: '58%',
+    detailUrl: assetPath('crew-detail.html?id=queen-bee'),
   },
   {
     id: 'red-braids',
@@ -67,6 +71,7 @@ export const crew = [
     image: assetPath('images/world/crew/red-braids.png'),
     x: '50%',
     y: '83%',
+    detailUrl: assetPath('crew-detail.html?id=red-braids'),
   },
   {
     id: 'giggles',
@@ -78,6 +83,7 @@ export const crew = [
     image: assetPath('images/world/crew/giggles.png'),
     x: '73%',
     y: '82%',
+    detailUrl: assetPath('crew-detail.html?id=giggles'),
   },
   {
     id: 'peace',
@@ -89,6 +95,7 @@ export const crew = [
     image: assetPath('images/world/crew/peace.png'),
     x: '83%',
     y: '60%',
+    detailUrl: assetPath('crew-detail.html?id=peace'),
   },
   {
     id: 'break-up',
@@ -100,6 +107,7 @@ export const crew = [
     image: assetPath('images/world/crew/break-up.png'),
     x: '18%',
     y: '82%',
+    detailUrl: assetPath('crew-detail.html?id=break-up'),
   },
   {
     id: 'chopper',
@@ -111,6 +119,7 @@ export const crew = [
     image: assetPath('images/world/crew/chopper.png'),
     x: '78%',
     y: '18%',
+    detailUrl: assetPath('crew-detail.html?id=chopper'),
   },
   {
     id: 'exprose',
@@ -122,5 +131,6 @@ export const crew = [
     image: assetPath('images/world/crew/exprose.png'),
     x: '60%',
     y: '50%',
+    detailUrl: assetPath('crew-detail.html?id=exprose'),
   },
 ];

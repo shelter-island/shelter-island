@@ -286,6 +286,7 @@ h2 {
 .map-pins {
   position: absolute;
   inset: 0;
+  z-index: 1;
   min-width: max(1120px, 100vw);
 }
 
