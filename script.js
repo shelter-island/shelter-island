@@ -7,6 +7,7 @@ if (mapPins) {
   mapPins.innerHTML = crew.map((member) => `
     <a
       class="map-pin"
+      data-crew-id="${member.id}"
       href="${member.detailUrl || `#${member.id}`}"
       style="--x: ${member.x}; --y: ${member.y}; --color: ${member.color}"
       aria-label="${member.area}"
@@ -15,13 +16,27 @@ if (mapPins) {
       ${member.area}
     </a>
   `).join('');
+
+  const pins = [...mapPins.querySelectorAll('.map-pin')];
+  const setActivePin = (pin) => {
+    pins.forEach((item) => item.classList.toggle('is-active', item === pin));
+    mapPins.classList.toggle('has-active', Boolean(pin));
+  };
+
+  pins.forEach((pin) => {
+    pin.addEventListener('mouseenter', () => setActivePin(pin));
+    pin.addEventListener('focus', () => setActivePin(pin));
+    pin.addEventListener('touchstart', () => setActivePin(pin), { passive: true });
+  });
+
+  mapPins.addEventListener('mouseleave', () => setActivePin(null));
 }
 
 if (crewGrid) {
   crewGrid.innerHTML = crew.map((member) => `
     <article class="crew-card reveal-on-scroll" id="${member.id}" style="--accent: ${member.color}">
       <a class="crew-card-link" href="${member.detailUrl || `#${member.id}`}" aria-label="${member.name}">
-        <img src="${member.image}" alt="${member.name}" loading="lazy" />
+        <img src="${member.image}" alt="${member.name}" loading="lazy" decoding="async" />
         <div class="crew-meta">
           <small>${member.number} / ${member.area}</small>
           <h3>${member.name}</h3>

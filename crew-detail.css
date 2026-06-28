@@ -87,10 +87,17 @@ li {
 }
 
 .back-link {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  background: rgba(0, 0, 0, 0.24);
   color: var(--accent);
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-shadow: 0 0 16px rgba(var(--accent-rgb), 0.34);
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
 }
 
 .detail-nav {
@@ -101,7 +108,27 @@ li {
 }
 
 .detail-nav a {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 0;
   color: rgba(241, 247, 248, 0.48);
+  transition: color 180ms ease, text-shadow 180ms ease;
+}
+
+.back-link:hover,
+.back-link:focus-visible,
+.detail-nav a:hover,
+.detail-nav a:focus-visible {
+  color: var(--ink);
+  border-color: rgba(var(--accent-rgb), 0.48);
+  background: rgba(var(--accent-rgb), 0.08);
+  text-shadow: 0 0 16px rgba(var(--accent-rgb), 0.42);
+}
+
+.back-link:hover,
+.back-link:focus-visible {
+  transform: translateY(-1px);
 }
 
 .detail-main {
@@ -191,10 +218,25 @@ h1 {
 
 .enter-cue {
   width: fit-content;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 16px;
+  border: 1px solid rgba(var(--accent-rgb), 0.34);
+  background: rgba(0, 0, 0, 0.34);
   color: rgba(241, 247, 248, 0.52);
   font-size: 0.76rem;
   letter-spacing: 0.18em;
   animation: softIn 1200ms 720ms ease-out both;
+  transition: transform 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.enter-cue:hover,
+.enter-cue:focus-visible {
+  color: var(--ink);
+  border-color: var(--accent);
+  box-shadow: 0 0 26px rgba(var(--accent-rgb), 0.18);
+  transform: translateY(-2px);
 }
 
 .hero-figure {
@@ -205,12 +247,14 @@ h1 {
   z-index: 1;
   opacity: 0.9;
   filter: drop-shadow(0 0 42px rgba(var(--accent-rgb), 0.22));
+  animation: figureIn 1300ms 180ms ease-out both;
 }
 
 .detail-section {
   display: grid;
   gap: 28px;
-  padding: 92px 18px;
+  padding: 88px 18px;
+  scroll-margin-top: 72px;
 }
 
 .section-title {
@@ -250,6 +294,7 @@ h2 {
 .gallery-card img {
   width: 100%;
   background: #000;
+  border-radius: 2px;
   box-shadow:
     0 0 0 1px rgba(var(--accent-rgb), 0.16),
     0 28px 80px rgba(0, 0, 0, 0.58),
@@ -310,6 +355,15 @@ h2 {
   border: 1px solid var(--line);
   background:
     linear-gradient(135deg, rgba(var(--accent-rgb), 0.08), transparent 42%),
+    var(--panel);
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.text-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--accent-rgb), 0.36);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.12), transparent 48%),
     var(--panel);
 }
 
@@ -389,6 +443,16 @@ h2 {
   aspect-ratio: 0.78;
   object-fit: cover;
   object-position: center top;
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.gallery-card:hover img {
+  transform: translateY(-3px) scale(1.01);
+  filter: saturate(1.06) contrast(1.04);
+  box-shadow:
+    0 0 0 1px rgba(var(--accent-rgb), 0.34),
+    0 34px 88px rgba(0, 0, 0, 0.64),
+    0 0 58px rgba(var(--accent-rgb), 0.14);
 }
 
 .gallery-card figcaption {
@@ -464,8 +528,24 @@ h2 {
 .quote-section span,
 .quote-section a {
   color: var(--accent);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  padding: 12px 16px;
+  border: 1px solid rgba(var(--accent-rgb), 0.34);
+  background: rgba(0, 0, 0, 0.32);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
   font-size: 0.82rem;
   letter-spacing: 0.18em;
+}
+
+.quote-section a:hover,
+.quote-section a:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 0 26px rgba(var(--accent-rgb), 0.18);
 }
 
 .reveal-on-scroll {
@@ -505,6 +585,20 @@ h2 {
   }
 }
 
+@keyframes figureIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+    filter: blur(6px) drop-shadow(0 0 0 rgba(var(--accent-rgb), 0));
+  }
+
+  to {
+    opacity: 0.9;
+    transform: translateY(0) scale(1);
+    filter: blur(0) drop-shadow(0 0 42px rgba(var(--accent-rgb), 0.22));
+  }
+}
+
 @media (min-width: 760px) {
   .detail-header {
     padding: 20px 28px;
@@ -530,7 +624,8 @@ h2 {
   }
 
   .detail-section {
-    padding: 124px 34px;
+    gap: 34px;
+    padding: 116px 34px;
   }
 
   .split-section .profile-panel,

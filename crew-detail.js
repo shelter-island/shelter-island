@@ -38,7 +38,7 @@ const textCards = (items) => items.map(([title, text]) => `
 
 const galleryCards = (character.gallery || []).map(([label, imageKey]) => `
   <figure class="gallery-card reveal-on-scroll">
-    <img src="${image(imageKey)}" alt="${character.name} ${label}" loading="lazy" />
+    <img src="${image(imageKey)}" alt="${character.name} ${label}" loading="lazy" decoding="async" />
     <figcaption>${label}</figcaption>
   </figure>
 `).join('');
@@ -53,7 +53,7 @@ const sectionMarkup = {
       <a class="enter-cue" href="#character">ENTER / SCROLL</a>
     </div>
     <figure class="hero-figure">
-      <img src="${image('hero')}" alt="${character.name}" />
+      <img src="${image('hero')}" alt="${character.name}" decoding="async" />
     </figure>
   </section>`,
 
@@ -64,7 +64,7 @@ const sectionMarkup = {
       <h2>${character.headings?.character || 'Two Faces.'}</h2>
     </div>
     <div class="profile-panel reveal-on-scroll">
-      <img src="${sectionImage('character', 'human')}" alt="${character.name} character" loading="lazy" />
+      <img src="${sectionImage('character', 'human')}" alt="${character.name} character" loading="lazy" decoding="async" />
       <dl class="profile-list">${dataRows(character.profile)}</dl>
     </div>
   </section>`,
@@ -76,7 +76,7 @@ const sectionMarkup = {
       <h2>${character.headings?.emotion || 'Inside the Mask.'}</h2>
     </div>
     <div class="image-led">
-      <img src="${sectionImage('emotion', 'emotionProfile')}" alt="${character.name} ${sectionLabel('emotion', 'emotion')}" loading="lazy" />
+      <img src="${sectionImage('emotion', 'emotionProfile')}" alt="${character.name} ${sectionLabel('emotion', 'emotion')}" loading="lazy" decoding="async" />
       <div class="card-grid">${textCards(character.emotion)}</div>
     </div>
   </section>`,
@@ -89,7 +89,7 @@ const sectionMarkup = {
       <p>${character.world.lead}</p>
     </div>
     <div class="world-panel reveal-on-scroll">
-      <img src="${sectionImage('world', 'castle')}" alt="${character.world.title}" loading="lazy" />
+      <img src="${sectionImage('world', 'castle')}" alt="${character.world.title}" loading="lazy" decoding="async" />
       <div class="world-text">
         <p>${character.world.overview}</p>
         <p>${character.world.role}</p>
@@ -118,7 +118,7 @@ const sectionMarkup = {
 
   home: () => `
   <section class="detail-section image-band" id="home" aria-label="HOME">
-    <img src="${sectionImage('home', 'home')}" alt="${character.name} ${sectionLabel('home', 'home')}" loading="lazy" />
+    <img src="${sectionImage('home', 'home')}" alt="${character.name} ${sectionLabel('home', 'home')}" loading="lazy" decoding="async" />
     <div class="band-copy reveal-on-scroll">
       <p class="detail-kicker">${sectionLabel('home', 'HOME')}</p>
       <h2>${character.home.title}</h2>
@@ -128,7 +128,7 @@ const sectionMarkup = {
 
   bike: () => `
   <section class="detail-section image-band reverse" id="bike" aria-label="BIKE">
-    <img src="${sectionImage('bike', 'bikeRide')}" alt="${character.bike.title} bike" loading="lazy" />
+    <img src="${sectionImage('bike', 'bikeRide')}" alt="${character.bike.title} bike" loading="lazy" decoding="async" />
     <div class="band-copy reveal-on-scroll">
       <p class="detail-kicker">${sectionLabel('bike', 'BIKE')}</p>
       <h2>${character.bike.title}</h2>
