@@ -1,6 +1,7 @@
-import"./modulepreload-polyfill-Dezn_h7o.js";import{n as e}from"./crewData-4ONBVaDY.js";var t=document.querySelector(`#crewGrid`),n=document.querySelector(`#mapPins`);n&&(n.innerHTML=e.map(e=>`
+import"./modulepreload-polyfill-Dezn_h7o.js";import{n as e}from"./crewData-4ONBVaDY.js";var t=document.querySelector(`#crewGrid`),n=document.querySelector(`#mapPins`);if(n){n.innerHTML=e.map(e=>`
     <a
       class="map-pin"
+      data-crew-id="${e.id}"
       href="${e.detailUrl||`#${e.id}`}"
       style="--x: ${e.x}; --y: ${e.y}; --color: ${e.color}"
       aria-label="${e.area}"
@@ -8,10 +9,10 @@ import"./modulepreload-polyfill-Dezn_h7o.js";import{n as e}from"./crewData-4ONBV
       <span>${e.number}</span>
       ${e.area}
     </a>
-  `).join(``)),t&&(t.innerHTML=e.map(e=>`
+  `).join(``);let t=[...n.querySelectorAll(`.map-pin`)],r=e=>{t.forEach(t=>t.classList.toggle(`is-active`,t===e)),n.classList.toggle(`has-active`,!!e)};t.forEach(e=>{e.addEventListener(`mouseenter`,()=>r(e)),e.addEventListener(`focus`,()=>r(e)),e.addEventListener(`touchstart`,()=>r(e),{passive:!0})}),n.addEventListener(`mouseleave`,()=>r(null))}t&&(t.innerHTML=e.map(e=>`
     <article class="crew-card reveal-on-scroll" id="${e.id}" style="--accent: ${e.color}">
       <a class="crew-card-link" href="${e.detailUrl||`#${e.id}`}" aria-label="${e.name}">
-        <img src="${e.image}" alt="${e.name}" loading="lazy" />
+        <img src="${e.image}" alt="${e.name}" loading="lazy" decoding="async" />
         <div class="crew-meta">
           <small>${e.number} / ${e.area}</small>
           <h3>${e.name}</h3>

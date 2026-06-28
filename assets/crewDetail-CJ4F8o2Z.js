@@ -10,7 +10,7 @@ import"./modulepreload-polyfill-Dezn_h7o.js";import{t as e}from"./crewData-4ONBV
   </article>
 `).join(``),f=(n.gallery||[]).map(([e,t])=>`
   <figure class="gallery-card reveal-on-scroll">
-    <img src="${o(t)}" alt="${n.name} ${e}" loading="lazy" />
+    <img src="${o(t)}" alt="${n.name} ${e}" loading="lazy" decoding="async" />
     <figcaption>${e}</figcaption>
   </figure>
 `).join(``),p={hero:()=>`
@@ -22,7 +22,7 @@ import"./modulepreload-polyfill-Dezn_h7o.js";import{t as e}from"./crewData-4ONBV
       <a class="enter-cue" href="#character">ENTER / SCROLL</a>
     </div>
     <figure class="hero-figure">
-      <img src="${o(`hero`)}" alt="${n.name}" />
+      <img src="${o(`hero`)}" alt="${n.name}" decoding="async" />
     </figure>
   </section>`,character:()=>`
   <section class="detail-section split-section" id="character" aria-label="CHARACTER">
@@ -31,7 +31,7 @@ import"./modulepreload-polyfill-Dezn_h7o.js";import{t as e}from"./crewData-4ONBV
       <h2>${n.headings?.character||`Two Faces.`}</h2>
     </div>
     <div class="profile-panel reveal-on-scroll">
-      <img src="${c(`character`,`human`)}" alt="${n.name} character" loading="lazy" />
+      <img src="${c(`character`,`human`)}" alt="${n.name} character" loading="lazy" decoding="async" />
       <dl class="profile-list">${u(n.profile)}</dl>
     </div>
   </section>`,emotion:()=>`
@@ -41,7 +41,7 @@ import"./modulepreload-polyfill-Dezn_h7o.js";import{t as e}from"./crewData-4ONBV
       <h2>${n.headings?.emotion||`Inside the Mask.`}</h2>
     </div>
     <div class="image-led">
-      <img src="${c(`emotion`,`emotionProfile`)}" alt="${n.name} ${s(`emotion`,`emotion`)}" loading="lazy" />
+      <img src="${c(`emotion`,`emotionProfile`)}" alt="${n.name} ${s(`emotion`,`emotion`)}" loading="lazy" decoding="async" />
       <div class="card-grid">${d(n.emotion)}</div>
     </div>
   </section>`,world:()=>`
@@ -52,7 +52,7 @@ import"./modulepreload-polyfill-Dezn_h7o.js";import{t as e}from"./crewData-4ONBV
       <p>${n.world.lead}</p>
     </div>
     <div class="world-panel reveal-on-scroll">
-      <img src="${c(`world`,`castle`)}" alt="${n.world.title}" loading="lazy" />
+      <img src="${c(`world`,`castle`)}" alt="${n.world.title}" loading="lazy" decoding="async" />
       <div class="world-text">
         <p>${n.world.overview}</p>
         <p>${n.world.role}</p>
@@ -77,7 +77,7 @@ import"./modulepreload-polyfill-Dezn_h7o.js";import{t as e}from"./crewData-4ONBV
     <div class="card-grid room-grid">${d(n.rooms)}</div>
   </section>`,home:()=>`
   <section class="detail-section image-band" id="home" aria-label="HOME">
-    <img src="${c(`home`,`home`)}" alt="${n.name} ${s(`home`,`home`)}" loading="lazy" />
+    <img src="${c(`home`,`home`)}" alt="${n.name} ${s(`home`,`home`)}" loading="lazy" decoding="async" />
     <div class="band-copy reveal-on-scroll">
       <p class="detail-kicker">${s(`home`,`HOME`)}</p>
       <h2>${n.home.title}</h2>
@@ -85,7 +85,7 @@ import"./modulepreload-polyfill-Dezn_h7o.js";import{t as e}from"./crewData-4ONBV
     </div>
   </section>`,bike:()=>`
   <section class="detail-section image-band reverse" id="bike" aria-label="BIKE">
-    <img src="${c(`bike`,`bikeRide`)}" alt="${n.bike.title} bike" loading="lazy" />
+    <img src="${c(`bike`,`bikeRide`)}" alt="${n.bike.title} bike" loading="lazy" decoding="async" />
     <div class="band-copy reveal-on-scroll">
       <p class="detail-kicker">${s(`bike`,`BIKE`)}</p>
       <h2>${n.bike.title}</h2>
