@@ -287,6 +287,17 @@ h2 {
   gap: 18px;
 }
 
+.profile-panel.is-text-only,
+.world-panel.is-text-only,
+.image-led.is-text-only,
+.image-band.is-text-only {
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.08), transparent 48%),
+    var(--panel);
+  padding: 18px;
+}
+
 .profile-panel > img,
 .image-led > img,
 .world-panel > img,
@@ -390,6 +401,100 @@ h2 {
 .world-text {
   display: grid;
   gap: 16px;
+}
+
+.trail-section {
+  padding-block: 72px;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(var(--accent-rgb), 0.11), transparent 22rem),
+    rgba(0, 0, 0, 0.16);
+}
+
+.trail-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.trail-current,
+.trail-link,
+.trail-actions a {
+  border: 1px solid color-mix(in srgb, var(--route-color, var(--accent)) 30%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--route-color, var(--accent)) 10%, transparent), transparent 48%),
+    rgba(0, 0, 0, 0.32);
+}
+
+.trail-current {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+}
+
+.trail-current span,
+.trail-link strong,
+.trail-link span {
+  color: var(--route-color, var(--accent));
+}
+
+.trail-current span,
+.trail-link span,
+.trail-actions a {
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.trail-current p,
+.trail-link small {
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.trail-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 12px;
+}
+
+.trail-links-title {
+  grid-column: 1 / -1;
+  color: var(--ink);
+  font-size: 0.86rem;
+  letter-spacing: 0.14em;
+}
+
+.trail-link,
+.trail-actions a {
+  min-height: 58px;
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.trail-link:hover,
+.trail-link:focus-visible,
+.trail-actions a:hover,
+.trail-actions a:focus-visible {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--route-color, var(--accent)) 62%, transparent);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--route-color, var(--accent)) 14%, transparent);
+}
+
+.trail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.trail-actions a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
 }
 
 .mini-columns {
@@ -654,6 +759,15 @@ h2 {
 
   .mini-columns {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .trail-panel {
+    grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr);
+    align-items: stretch;
+  }
+
+  .trail-actions {
+    grid-column: 1 / -1;
   }
 
   .gallery-grid {

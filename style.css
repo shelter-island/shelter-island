@@ -125,9 +125,12 @@ main {
   inset: 0;
   z-index: -2;
   content: "";
-  background:
+  background-image:
     linear-gradient(180deg, rgba(0, 0, 0, 0.72), #030405 90%),
-    url("/images/world/map/no-limit-crew-island.png") center / cover;
+    var(--hero-map-image, none);
+  background-position: center, center;
+  background-size: auto, cover;
+  background-repeat: no-repeat;
   filter: brightness(0.12) saturate(1.02) contrast(1.12);
   transform: scale(1.04);
 }
@@ -421,6 +424,155 @@ h2 {
   letter-spacing: 0.04em;
 }
 
+.guide-heading {
+  display: grid;
+  gap: 10px;
+  padding: 12px 2px 2px;
+}
+
+.guide-heading h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.55rem, 7vw, 3.2rem);
+  line-height: 0.95;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.guide-heading p:last-child {
+  max-width: 42rem;
+  color: rgba(244, 239, 230, 0.62);
+  font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  line-height: 1.85;
+}
+
+.world-guide {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--guide-color, var(--cyan)) 30%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--guide-color, var(--cyan)) 12%, transparent), transparent 44%),
+    rgba(0, 0, 0, 0.38);
+  box-shadow: 0 0 34px color-mix(in srgb, var(--guide-color, var(--cyan)) 10%, transparent);
+}
+
+.guide-copy,
+.guide-presence {
+  display: grid;
+  gap: 9px;
+}
+
+.guide-copy h3 {
+  color: var(--ink);
+  font-size: clamp(1.8rem, 9vw, 4rem);
+  line-height: 0.9;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--guide-color, var(--cyan)) 22%, transparent);
+}
+
+.guide-copy p,
+.guide-presence p,
+.route-card small {
+  color: rgba(244, 239, 230, 0.6);
+  font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  line-height: 1.75;
+}
+
+.guide-presence span {
+  color: var(--guide-color, var(--cyan));
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+}
+
+.guide-links,
+.route-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 146px), 1fr));
+  gap: 10px;
+}
+
+.route-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(244, 239, 230, 0.12);
+}
+
+.route-heading span {
+  color: var(--ink);
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+}
+
+.route-heading small {
+  color: rgba(244, 239, 230, 0.46);
+  font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+}
+
+.guide-links a,
+.guide-enter,
+.route-card {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 12px;
+  border: 1px solid color-mix(in srgb, var(--route-color, var(--guide-color, var(--cyan))) 28%, transparent);
+  background: rgba(0, 0, 0, 0.32);
+  color: var(--route-color, var(--guide-color, var(--cyan)));
+  text-decoration: none;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.guide-links a span,
+.route-card span {
+  width: 20px;
+  height: 20px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.62rem;
+}
+
+.guide-enter {
+  width: fit-content;
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--guide-color, var(--cyan)) 52%, transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--guide-color, var(--cyan)) 12%, transparent);
+}
+
+.route-strip {
+  padding-top: 0;
+}
+
+.route-card {
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: center;
+}
+
+.route-card small {
+  grid-column: 2;
+  font-size: 0.75rem;
+}
+
+.guide-links a:hover,
+.guide-links a:focus-visible,
+.guide-enter:hover,
+.guide-enter:focus-visible,
+.route-card:hover,
+.route-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: currentColor;
+  background: color-mix(in srgb, var(--route-color, var(--guide-color, var(--cyan))) 10%, rgba(0, 0, 0, 0.44));
+  box-shadow: 0 0 24px color-mix(in srgb, var(--route-color, var(--guide-color, var(--cyan))) 16%, transparent);
+}
+
 .crew-section {
   padding-bottom: 72px;
 }
@@ -599,6 +751,16 @@ h2 {
 
   .crew-grid {
     gap: 48px 28px;
+  }
+
+  .world-guide {
+    grid-template-columns: minmax(0, 1.1fr) minmax(220px, 0.8fr);
+    align-items: end;
+  }
+
+  .guide-links,
+  .guide-enter {
+    grid-column: 1 / -1;
   }
 }
 

@@ -1,8 +1,12 @@
 import { characterDetails } from './data/characterDetailData.js';
+import { assetPath, crew } from './data/crewData.js';
 
 const params = new URLSearchParams(window.location.search);
 const requestedId = params.get('id') || document.body.dataset.defaultCrew || 'grow';
 const character = characterDetails[requestedId] || characterDetails.grow;
+const crewById = new Map(crew.map((member) => [member.id, member]));
+const currentCrew = crewById.get(character.id || requestedId) || crewById.get(requestedId);
+const relatedCrew = (currentCrew?.related || []).map((id) => crewById.get(id)).filter(Boolean);
 const app = document.querySelector('#app');
 const backLink = document.querySelector('#backLink');
 
@@ -18,9 +22,17 @@ if (backLink) {
 }
 
 const isEnabled = (section) => character.sections?.[section] !== false;
-const image = (key) => character.images[key];
+const image = (key) => character.images?.[key];
 const sectionLabel = (section, fallback) => character.labels?.[section] || fallback;
-const sectionImage = (section, fallback) => image(character.sectionImages?.[section] || fallback);
+const sectionImageKey = (section, fallback) => character.sectionImages?.[section] || fallback;
+const renderedImages = new Set();
+const imageTag = (key, alt, attrs = '') => {
+  const src = image(key);
+  if (!src || renderedImages.has(src)) return '';
+  renderedImages.add(src);
+  return `<img src="${src}" alt="${alt}" ${attrs} />`;
+};
+const textOnlyClass = (markup) => markup ? '' : ' is-text-only';
 const list = (items = []) => items.map((item) => `<li>${item}</li>`).join('');
 const dataRows = (rows) => rows.map(([label, value]) => `
   <div class="data-row">
@@ -36,11 +48,28 @@ const textCards = (items) => items.map(([title, text]) => `
   </article>
 `).join('');
 
-const galleryCards = (character.gallery || []).map(([label, imageKey]) => `
-  <figure class="gallery-card reveal-on-scroll">
-    <img src="${image(imageKey)}" alt="${character.name} ${label}" loading="lazy" decoding="async" />
-    <figcaption>${label}</figcaption>
-  </figure>
+const galleryCards = () => {
+  const localImages = new Set();
+  return (character.gallery || []).map(([label, imageKey]) => {
+    const src = image(imageKey);
+    if (!src || renderedImages.has(src) || localImages.has(src)) return '';
+    renderedImages.add(src);
+    localImages.add(src);
+    return `
+      <figure class="gallery-card reveal-on-scroll">
+        <img src="${src}" alt="${character.name} ${label}" loading="lazy" decoding="async" />
+        <figcaption>${label}</figcaption>
+      </figure>
+    `;
+  }).join('');
+};
+
+const trailLinks = relatedCrew.map((member) => `
+  <a class="trail-link reveal-on-scroll" href="${member.detailUrl}" style="--route-color: ${member.color}">
+    <span>${member.number}</span>
+    <strong>${member.name}</strong>
+    <small>${member.spot || member.area} / ${member.area}</small>
+  </a>
 `).join('');
 
 const sectionMarkup = {
@@ -53,43 +82,63 @@ const sectionMarkup = {
       <a class="enter-cue" href="#character">ENTER / SCROLL</a>
     </div>
     <figure class="hero-figure">
-      <img src="${image('hero')}" alt="${character.name}" decoding="async" />
+      ${imageTag('hero', character.name, 'decoding="async"')}
     </figure>
   </section>`,
 
-  character: () => `
+  character: () => {
+    const figure = imageTag(
+      sectionImageKey('character', 'human'),
+      `${character.name} character`,
+      'loading="lazy" decoding="async"',
+    );
+    return `
   <section class="detail-section split-section" id="character" aria-label="CHARACTER">
     <div class="section-title reveal-on-scroll">
       <p class="detail-kicker">${sectionLabel('character', 'CHARACTER')}</p>
       <h2>${character.headings?.character || 'Two Faces.'}</h2>
     </div>
-    <div class="profile-panel reveal-on-scroll">
-      <img src="${sectionImage('character', 'human')}" alt="${character.name} character" loading="lazy" decoding="async" />
+    <div class="profile-panel${textOnlyClass(figure)} reveal-on-scroll">
+      ${figure}
       <dl class="profile-list">${dataRows(character.profile)}</dl>
     </div>
-  </section>`,
+  </section>`;
+  },
 
-  emotion: () => `
+  emotion: () => {
+    const figure = imageTag(
+      sectionImageKey('emotion', 'emotionProfile'),
+      `${character.name} ${sectionLabel('emotion', 'emotion')}`,
+      'loading="lazy" decoding="async"',
+    );
+    return `
   <section class="detail-section" id="emotion" aria-label="EMOTION">
     <div class="section-title reveal-on-scroll">
       <p class="detail-kicker">${sectionLabel('emotion', 'EMOTION')}</p>
       <h2>${character.headings?.emotion || 'Inside the Mask.'}</h2>
     </div>
-    <div class="image-led">
-      <img src="${sectionImage('emotion', 'emotionProfile')}" alt="${character.name} ${sectionLabel('emotion', 'emotion')}" loading="lazy" decoding="async" />
+    <div class="image-led${textOnlyClass(figure)}">
+      ${figure}
       <div class="card-grid">${textCards(character.emotion)}</div>
     </div>
-  </section>`,
+  </section>`;
+  },
 
-  world: () => `
+  world: () => {
+    const figure = imageTag(
+      sectionImageKey('world', 'castle'),
+      character.world.title,
+      'loading="lazy" decoding="async"',
+    );
+    return `
   <section class="detail-section" id="world" aria-label="WORLD">
     <div class="section-title reveal-on-scroll">
       <p class="detail-kicker">${sectionLabel('world', 'WORLD')}</p>
       <h2>${character.world.title}</h2>
       <p>${character.world.lead}</p>
     </div>
-    <div class="world-panel reveal-on-scroll">
-      <img src="${sectionImage('world', 'castle')}" alt="${character.world.title}" loading="lazy" decoding="async" />
+    <div class="world-panel${textOnlyClass(figure)} reveal-on-scroll">
+      ${figure}
       <div class="world-text">
         <p>${character.world.overview}</p>
         <p>${character.world.role}</p>
@@ -105,7 +154,31 @@ const sectionMarkup = {
         </div>
       </div>
     </div>
-  </section>`,
+  </section>`;
+  },
+
+  trail: () => currentCrew ? `
+  <section class="detail-section trail-section" id="trail" aria-label="ISLAND TRAIL">
+    <div class="section-title reveal-on-scroll">
+      <p class="detail-kicker">ISLAND TRAIL</p>
+      <h2>${currentCrew.spot || currentCrew.area}</h2>
+      <p>${currentCrew.walkHint || currentCrew.line}</p>
+    </div>
+    <div class="trail-panel">
+      <article class="trail-current reveal-on-scroll" style="--route-color: ${currentCrew.color}">
+        <span>CURRENT AREA</span>
+        <p>${currentCrew.presence || currentCrew.name}</p>
+      </article>
+      <div class="trail-links" aria-label="${currentCrew.name}に関連する島のエリア">
+        <p class="trail-links-title">RELATED AREAS</p>
+        ${trailLinks}
+      </div>
+      <div class="trail-actions reveal-on-scroll">
+        <a href="${assetPath('index.html#world')}">BACK TO WORLD MAP</a>
+        <a href="${assetPath('index.html#crew')}">ALL CREW</a>
+      </div>
+    </div>
+  </section>` : '',
 
   rooms: () => `
   <section class="detail-section" id="rooms" aria-label="CASTLE MAP AND ROOMS">
@@ -116,34 +189,52 @@ const sectionMarkup = {
     <div class="card-grid room-grid">${textCards(character.rooms)}</div>
   </section>`,
 
-  home: () => `
-  <section class="detail-section image-band" id="home" aria-label="HOME">
-    <img src="${sectionImage('home', 'home')}" alt="${character.name} ${sectionLabel('home', 'home')}" loading="lazy" decoding="async" />
+  home: () => {
+    const figure = imageTag(
+      sectionImageKey('home', 'home'),
+      `${character.name} ${sectionLabel('home', 'home')}`,
+      'loading="lazy" decoding="async"',
+    );
+    return `
+  <section class="detail-section image-band${textOnlyClass(figure)}" id="home" aria-label="HOME">
+    ${figure}
     <div class="band-copy reveal-on-scroll">
       <p class="detail-kicker">${sectionLabel('home', 'HOME')}</p>
       <h2>${character.home.title}</h2>
       <ul>${list(character.home.lines)}</ul>
     </div>
-  </section>`,
+  </section>`;
+  },
 
-  bike: () => `
-  <section class="detail-section image-band reverse" id="bike" aria-label="BIKE">
-    <img src="${sectionImage('bike', 'bikeRide')}" alt="${character.bike.title} bike" loading="lazy" decoding="async" />
+  bike: () => {
+    const figure = imageTag(
+      sectionImageKey('bike', 'bikeRide'),
+      `${character.bike.title} bike`,
+      'loading="lazy" decoding="async"',
+    );
+    return `
+  <section class="detail-section image-band reverse${textOnlyClass(figure)}" id="bike" aria-label="BIKE">
+    ${figure}
     <div class="band-copy reveal-on-scroll">
       <p class="detail-kicker">${sectionLabel('bike', 'BIKE')}</p>
       <h2>${character.bike.title}</h2>
       <ul>${list(character.bike.lines)}</ul>
     </div>
-  </section>`,
+  </section>`;
+  },
 
-  gallery: () => `
+  gallery: () => {
+    const cards = galleryCards();
+    if (!cards) return '';
+    return `
   <section class="detail-section" id="gallery" aria-label="GALLERY">
     <div class="section-title reveal-on-scroll">
       <p class="detail-kicker">${sectionLabel('gallery', 'GALLERY')}</p>
       <h2>${character.headings?.gallery || 'Collected Images.'}</h2>
     </div>
-    <div class="gallery-grid">${galleryCards}</div>
-  </section>`,
+    <div class="gallery-grid">${cards}</div>
+  </section>`;
+  },
 
   lifestyle: () => `
   <section class="detail-section" id="lifestyle" aria-label="LIFE STYLE">
@@ -176,7 +267,7 @@ const sectionMarkup = {
   <section class="detail-section" id="music" aria-label="MUSIC">
     <div class="section-title reveal-on-scroll">
       <p class="detail-kicker">${sectionLabel('music', 'MUSIC')}</p>
-      <h2>${character.headings?.music || 'Coming Soon.'}</h2>
+      <h2>${character.headings?.music || 'Sound Image.'}</h2>
     </div>
     <div class="music-panel reveal-on-scroll">
       ${(character.music || []).map((item) => `<span>${item}</span>`).join('')}
@@ -196,6 +287,7 @@ const defaultSectionOrder = [
   'character',
   'emotion',
   'world',
+  'trail',
   'rooms',
   'home',
   'bike',
@@ -207,9 +299,16 @@ const defaultSectionOrder = [
   'quote',
 ];
 
-app.innerHTML = (character.sectionOrder || defaultSectionOrder)
+const pageOrder = [...(character.sectionOrder || defaultSectionOrder)];
+if (currentCrew && !pageOrder.includes('trail')) {
+  const worldIndex = pageOrder.indexOf('world');
+  pageOrder.splice(worldIndex >= 0 ? worldIndex + 1 : pageOrder.length - 1, 0, 'trail');
+}
+
+app.innerHTML = pageOrder
   .filter((section) => sectionMarkup[section] && isEnabled(section))
   .map((section) => sectionMarkup[section]())
+  .filter(Boolean)
   .join('');
 
 const revealTargets = document.querySelectorAll('.reveal-on-scroll');
