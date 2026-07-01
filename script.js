@@ -8,7 +8,7 @@ const crewById = new Map(crew.map((member) => [member.id, member]));
 
 document.documentElement.style.setProperty(
   '--hero-map-image',
-  `url("${import.meta.env.BASE_URL}images/world/map/no-limit-crew-island.png")`,
+  `url("${new URL('images/world/map/no-limit-crew-island.png', document.baseURI).href}")`,
 );
 
 const relatedLinks = (member) => (member.related || [])
