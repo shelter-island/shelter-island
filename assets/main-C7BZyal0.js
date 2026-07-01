@@ -1,4 +1,4 @@
-import"./modulepreload-polyfill-Dezn_h7o.js";import{n as e}from"./crewData-Cw8zsfhP.js";var t=document.querySelector(`#crewGrid`),n=document.querySelector(`#mapPins`),r=document.querySelector(`#worldGuide`),i=document.querySelector(`#routeStrip`),a=new Map(e.map(e=>[e.id,e]));document.documentElement.style.setProperty(`--hero-map-image`,`url("./images/world/map/no-limit-crew-island.png")`);var o=e=>(e.related||[]).map(e=>a.get(e)).filter(Boolean).map(e=>`
+import"./modulepreload-polyfill-Dezn_h7o.js";import{n as e}from"./crewData-Cw8zsfhP.js";var t=document.querySelector(`#crewGrid`),n=document.querySelector(`#mapPins`),r=document.querySelector(`#worldGuide`),i=document.querySelector(`#routeStrip`),a=new Map(e.map(e=>[e.id,e]));document.documentElement.style.setProperty(`--hero-map-image`,`url("${new URL(`images/world/map/no-limit-crew-island.png`,document.baseURI).href}")`);var o=e=>(e.related||[]).map(e=>a.get(e)).filter(Boolean).map(e=>`
     <a href="${e.detailUrl}" style="--route-color: ${e.color}">
       <span>${e.number}</span>
       ${e.name}
