@@ -79,12 +79,71 @@ const sectionMarkup = {
       <p class="detail-kicker">${character.crewLabel} / ${character.number}</p>
       <h1>${character.name}</h1>
       <p class="hero-catch">${character.catch}</p>
-      <a class="enter-cue" href="#character">ENTER / SCROLL</a>
+      <a class="enter-cue" href="#${character.enterTarget || 'character'}">ENTER / SCROLL</a>
     </div>
     <figure class="hero-figure">
-      ${imageTag('hero', character.name, 'decoding="async"')}
+      ${imageTag('hero', character.name, 'class="hero-image" decoding="async" fetchpriority="high"')}
     </figure>
   </section>`,
+
+  areaMap: () => {
+    const map = character.areaMap;
+    const mapFigure = imageTag(
+      sectionImageKey('areaMap', 'areaMap'),
+      `${character.name} area map`,
+      'loading="lazy" decoding="async" class="grow-map-image"',
+    );
+    if (!map && !mapFigure) return '';
+
+    const spots = (map?.spots || []).map((spot) => `
+      <article class="grow-spot-card reveal-on-scroll">
+        <span>${spot.number}</span>
+        <h3>${spot.name}</h3>
+        <p>${spot.text}</p>
+      </article>
+    `).join('');
+
+    return `
+  <section class="detail-section grow-map-section" id="grow-map" aria-label="${sectionLabel('areaMap', 'GROW MAP')}">
+    <div class="section-title reveal-on-scroll">
+      <p class="detail-kicker">${sectionLabel('areaMap', 'GROW MAP')}</p>
+      <h2>${map?.title || character.headings?.areaMap || 'Enter the Area.'}</h2>
+      <p>${map?.lead || character.catch}</p>
+    </div>
+    <div class="grow-map-showcase">
+      ${mapFigure ? `<figure class="grow-map-frame reveal-on-scroll">${mapFigure}</figure>` : ''}
+      ${spots ? `<div class="grow-spot-grid">${spots}</div>` : ''}
+    </div>
+  </section>`;
+  },
+
+  tourGuide: () => {
+    const guide = character.tourGuide;
+    const guideFigure = imageTag(
+      sectionImageKey('tourGuide', 'tourGuide'),
+      `${character.name} tour guide`,
+      'loading="lazy" decoding="async" class="grow-guide-image"',
+    );
+    if (!guide && !guideFigure) return '';
+
+    const notes = (guide?.notes || []).map((note) => `<li>${note}</li>`).join('');
+
+    return `
+  <section class="detail-section grow-guide-section" id="grow-guide" aria-label="${sectionLabel('tourGuide', 'GROW GUIDE / TOUR GUIDE')}">
+    <div class="section-title reveal-on-scroll">
+      <p class="detail-kicker">${sectionLabel('tourGuide', 'GROW GUIDE / TOUR GUIDE')}</p>
+      <h2>${guide?.title || character.headings?.tourGuide || 'Tour Guide.'}</h2>
+      <p>${guide?.lead || character.catch}</p>
+    </div>
+    <div class="grow-guide-panel reveal-on-scroll">
+      ${guideFigure ? `<figure class="grow-guide-frame">${guideFigure}</figure>` : ''}
+      <div class="grow-guide-copy">
+        ${guide?.body ? `<p>${guide.body}</p>` : ''}
+        ${notes ? `<ul class="grow-guide-list">${notes}</ul>` : ''}
+      </div>
+    </div>
+  </section>`;
+  },
 
   character: () => {
     const figure = imageTag(
