@@ -19,7 +19,7 @@ import"./modulepreload-polyfill-Dezn_h7o.js";import{n as e,t}from"./crewData-Cw8
     <strong>${e.name}</strong>
     <small>${e.spot||e.area} / ${e.area}</small>
   </a>
-`).join(``),S={hero:()=>`
+`).join(``),S={hero:()=>{let e=h(`hero`,i.name,`class="hero-image" decoding="async" fetchpriority="high"`);return`
   <section class="grow-hero" id="top" aria-label="${i.name} TOP">
     <div class="hero-copy">
       <p class="detail-kicker">${i.crewLabel} / ${i.number}</p>
@@ -27,10 +27,8 @@ import"./modulepreload-polyfill-Dezn_h7o.js";import{n as e,t}from"./crewData-Cw8
       <p class="hero-catch">${i.catch}</p>
       <a class="enter-cue" href="#${i.enterTarget||`character`}">ENTER / SCROLL</a>
     </div>
-    <figure class="hero-figure">
-      ${h(`hero`,i.name,`class="hero-image" decoding="async" fetchpriority="high"`)}
-    </figure>
-  </section>`,areaMap:()=>{let e=i.areaMap,t=h(p(`areaMap`,`areaMap`),`${i.name} area map`,`loading="lazy" decoding="async" class="grow-map-image"`);if(!e&&!t)return``;let n=(e?.spots||[]).map(e=>`
+    ${e?`<figure class="hero-figure">${e}</figure>`:``}
+  </section>`},areaMap:()=>{let e=i.areaMap,t=h(p(`areaMap`,`areaMap`),`${i.name} area map`,`loading="lazy" decoding="async" class="grow-map-image"`);if(!e&&!t)return``;let n=(e?.spots||[]).map(e=>`
       <article class="grow-spot-card reveal-on-scroll">
         <span>${e.number}</span>
         <h3>${e.name}</h3>
