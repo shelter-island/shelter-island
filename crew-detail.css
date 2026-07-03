@@ -247,15 +247,27 @@ h1 {
   width: min(94vw, 620px);
   z-index: 1;
   opacity: 0.9;
-  filter: drop-shadow(0 0 42px rgba(var(--accent-rgb), 0.22));
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 52%, rgba(var(--accent-rgb), 0.14), transparent 62%),
+    #020202;
+  border: 1px solid rgba(var(--accent-rgb), 0.12);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 0 42px rgba(var(--accent-rgb), 0.16);
   animation: figureIn 1300ms 180ms ease-out both;
 }
 
 .hero-image {
+  display: block;
   width: 100%;
+  height: auto;
   opacity: 1;
   visibility: visible;
   background: transparent;
+  object-fit: contain;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .detail-section {
@@ -732,9 +744,10 @@ h2 {
 
 .theme-the-sun .hero-figure {
   right: -18%;
-  filter:
-    drop-shadow(0 0 38px rgba(var(--accent-rgb), 0.2))
-    drop-shadow(0 18px 38px rgba(0, 0, 0, 0.62));
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 0 46px rgba(var(--accent-rgb), 0.18),
+    0 18px 38px rgba(0, 0, 0, 0.5);
 }
 
 .theme-the-sun .profile-panel > img {
@@ -837,13 +850,11 @@ h2 {
   from {
     opacity: 0;
     transform: translateY(18px) scale(0.985);
-    filter: blur(6px) drop-shadow(0 0 0 rgba(var(--accent-rgb), 0));
   }
 
   to {
     opacity: 0.9;
     transform: translateY(0) scale(1);
-    filter: blur(0) drop-shadow(0 0 42px rgba(var(--accent-rgb), 0.22));
   }
 }
 

@@ -73,7 +73,10 @@ const trailLinks = relatedCrew.map((member) => `
 `).join('');
 
 const sectionMarkup = {
-  hero: () => `
+  hero: () => {
+    const heroImage = imageTag('hero', character.name, 'class="hero-image" decoding="async" fetchpriority="high"');
+
+    return `
   <section class="grow-hero" id="top" aria-label="${character.name} TOP">
     <div class="hero-copy">
       <p class="detail-kicker">${character.crewLabel} / ${character.number}</p>
@@ -81,10 +84,9 @@ const sectionMarkup = {
       <p class="hero-catch">${character.catch}</p>
       <a class="enter-cue" href="#${character.enterTarget || 'character'}">ENTER / SCROLL</a>
     </div>
-    <figure class="hero-figure">
-      ${imageTag('hero', character.name, 'class="hero-image" decoding="async" fetchpriority="high"')}
-    </figure>
-  </section>`,
+    ${heroImage ? `<figure class="hero-figure">${heroImage}</figure>` : ''}
+  </section>`;
+  },
 
   areaMap: () => {
     const map = character.areaMap;
