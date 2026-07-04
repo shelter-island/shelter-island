@@ -743,11 +743,21 @@ h2 {
 }
 
 .theme-the-sun .hero-figure {
-  right: -18%;
+  right: 4vw;
+  width: min(50vw, 560px);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(var(--accent-rgb), 0.12), transparent 62%),
+    #050402;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.03),
     0 0 46px rgba(var(--accent-rgb), 0.18),
     0 18px 38px rgba(0, 0, 0, 0.5);
+}
+
+.theme-the-sun .hero-image {
+  max-height: 92svh;
+  object-fit: contain;
+  object-position: center bottom;
 }
 
 .theme-the-sun .profile-panel > img {
