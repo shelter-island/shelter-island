@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ことばの住所｜ことばを住所に変える暗号あそび</title>
+  <meta name="description" content="ひらがなをX軸とY軸の住所に変えて、暗号をつくったり読んだりできるWebアプリ「ことばの住所」。">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">X軸 × Y軸</p>
+      <h1>ことばの住所</h1>
+    </div>
+    <div class="mode-switch" aria-label="画面切り替え">
+      <button class="mode-button is-active" type="button" data-view="home">ホーム</button>
+      <button class="mode-button" type="button" data-view="create">つくる</button>
+      <button class="mode-button" type="button" data-view="search">さがす</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="view home-view is-active" id="homeView">
+      <div class="home-shell">
+        <div class="home-panel">
+          <button class="big-entry create-entry" type="button" data-view="create">
+            <span class="entry-icon">🔐</span>
+            <strong>暗号をつくる</strong>
+            <small>ことばを秘密の住所に変える</small>
+            <em>
+              <b>かざぐるま</b>
+              <i>↓</i>
+              <b>☀️🐮 ☀️🐯 🌙🐶 🔥🐮 …</b>
+            </em>
+          </button>
+          <button class="big-entry search-entry" type="button" data-view="search">
+            <span class="entry-icon">🔎</span>
+            <strong>暗号を読む</strong>
+            <small>届いた住所からことばを探す</small>
+            <em>
+              <b>☀️🐮 ☀️🐯 🌙🐶 🔥🐮 …</b>
+              <i>↓</i>
+              <b>かざぐるま</b>
+            </em>
+          </button>
+        </div>
+
+        <div class="home-address-note">
+          <h2>この暗号は「住所」でできています</h2>
+          <p>☀️太陽 × 🐮うし → か</p>
+          <button class="address-map-link" type="button" data-view="create">住所表を見る</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="view create-view" id="createView">
+      <div class="tool-layout">
+        <section class="maker-panel" aria-labelledby="createTitle">
+          <section class="step-card step-input" aria-labelledby="createTitle">
+            <div class="step-heading">
+              <span>STEP 1</span>
+              <h2 id="createTitle">ことばを入れる</h2>
+            </div>
+            <textarea id="kanaInput" rows="2" placeholder="かざぐるま"></textarea>
+            <div class="input-notice" id="createInputNotice" hidden>
+              <span>暗号を読むときは「さがす」を使ってください</span>
+              <button class="notice-button" type="button" id="goSearchButton">さがすへ</button>
+            </div>
+            <div class="token-row" id="tokenRow" aria-label="暗号にする文字"></div>
+            <details class="address-details">
+              <summary>住所を見る</summary>
+              <div id="selectedText">まだありません</div>
+            </details>
+            <button class="secondary-button clear-button" type="button" id="clearSelection">クリア</button>
+          </section>
+
+          <section class="step-card step-choices" aria-labelledby="choicesTitle">
+            <div class="step-heading">
+              <span>STEP 2</span>
+              <h2 id="choicesTitle">暗号を選ぶ</h2>
+            </div>
+            <div class="choice-list" id="choiceList"></div>
+          </section>
+
+          <section class="result-box" id="cipherResultBox" aria-labelledby="resultTitle" hidden>
+            <div class="step-heading">
+              <span>STEP 3</span>
+              <h2 id="resultTitle">完成した暗号をコピー</h2>
+            </div>
+            <output id="cipherOutput"></output>
+            <button class="copy-button" type="button" id="copyButton" disabled>コピー</button>
+          </section>
+        </section>
+
+        <section class="map-panel" aria-labelledby="createMapTitle">
+          <div class="panel-heading">
+            <p class="eyebrow">Tap</p>
+            <h2 id="createMapTitle">触って選べる地図</h2>
+          </div>
+          <div class="map-scroll">
+            <div class="kana-map" id="createMap"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="view search-view" id="searchView">
+      <div class="tool-layout search-layout">
+        <section class="finder-panel" aria-labelledby="searchTitle">
+          <section class="step-card reader-card" aria-labelledby="readerTitle">
+            <div class="step-heading">
+              <span>A</span>
+              <h2 id="readerTitle">暗号を読む</h2>
+            </div>
+            <textarea id="cipherInput" rows="4" placeholder="☀️🐮☀️🐯🌙🐶🔥🐮🌙🐶🔥🐵☀️🐴"></textarea>
+            <button class="translate-button" type="button" id="translateButton">翻訳する</button>
+            <div class="translation-result" id="translationResultBox" hidden>
+              <span>見つかったことば</span>
+              <output id="translationOutput"></output>
+            </div>
+            <details class="address-details">
+              <summary>住所を見る</summary>
+              <div id="analysisOutput">まだありません</div>
+            </details>
+          </section>
+
+          <section class="step-card single-find-card" aria-labelledby="searchTitle">
+            <div class="step-heading">
+              <span>B</span>
+              <h2 id="searchTitle">住所を1つずつ探す</h2>
+            </div>
+
+            <label class="input-label" for="xSelect">X軸</label>
+            <select id="xSelect"></select>
+
+            <label class="input-label" for="ySelect">Y軸</label>
+            <select id="ySelect"></select>
+
+            <div class="found-card" id="foundCard">
+              <span>見つかった文字</span>
+              <strong>あ</strong>
+              <small>X1 × Y1</small>
+            </div>
+          </section>
+        </section>
+
+        <section class="map-panel" aria-labelledby="searchMapTitle">
+          <div class="panel-heading">
+            <p class="eyebrow">Address Map</p>
+            <h2 id="searchMapTitle">住所表</h2>
+          </div>
+          <div class="map-scroll">
+            <div class="kana-map" id="searchMap"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="data/map.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
