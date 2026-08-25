@@ -8,7 +8,8 @@
   const views = {
     home: document.getElementById("homeView"),
     create: document.getElementById("createView"),
-    search: document.getElementById("searchView")
+    search: document.getElementById("searchView"),
+    challenge: document.getElementById("challengeView")
   };
 
   const modeButtons = Array.from(document.querySelectorAll("[data-view]"));
@@ -34,6 +35,20 @@
   const xSelect = document.getElementById("xSelect");
   const ySelect = document.getElementById("ySelect");
   const foundCard = document.getElementById("foundCard");
+  const challengeLevel = document.getElementById("challengeLevel");
+  const challengeLength = document.getElementById("challengeLength");
+  const startChallengeButton = document.getElementById("startChallengeButton");
+  const challengeMeta = document.getElementById("challengeMeta");
+  const challengeQuestion = document.getElementById("challengeQuestion");
+  const hintButton = document.getElementById("hintButton");
+  const challengeAnswerInput = document.getElementById("challengeAnswerInput");
+  const challengeTokenRow = document.getElementById("challengeTokenRow");
+  const challengeUndoButton = document.getElementById("challengeUndoButton");
+  const challengeClearButton = document.getElementById("challengeClearButton");
+  const checkAnswerButton = document.getElementById("checkAnswerButton");
+  const challengeResult = document.getElementById("challengeResult");
+  const nextQuestionButton = document.getElementById("nextQuestionButton");
+  const challengeScore = document.getElementById("challengeScore");
   const toast = document.getElementById("toast");
 
   const flatCells = [];
@@ -44,6 +59,13 @@
   const createAddressChoice = {
     xId: 1,
     yId: 1
+  };
+  const challengeState = {
+    cells: [],
+    answerGroups: [],
+    expected: "",
+    score: 0,
+    lastFirstKey: null
   };
   const voicedKana = {
     か: "が", き: "ぎ", く: "ぐ", け: "げ", こ: "ご",
@@ -457,6 +479,188 @@
     return result.join("");
   }
 
+  function randomItem(items) {
+    return items[Math.floor(Math.random() * items.length)];
+  }
+
+  function cellKey(cell) {
+    return `${cell.xId}-${cell.yId}`;
+  }
+
+  function usableChallengeCells() {
+    return flatCells.filter((cell) => !cell.unused && cell.value);
+  }
+
+  function wordToChallengeCells(word) {
+    const cells = [];
+    Array.from(word.replace(/\s/g, "")).forEach((char) => {
+      const group = groupForChar(char);
+      if (group) {
+        cells.push(...group.parts);
+      }
+    });
+    return cells;
+  }
+
+  function challengeWords() {
+    return (window.CHALLENGE_WORDS || []).filter((word) => {
+      const cells = wordToChallengeCells(word);
+      return cells.length > 0 && applyKanaHelpers(cells.map((cell) => cell.value)) === word;
+    });
+  }
+
+  function randomChallengeCells(count) {
+    const usable = usableChallengeCells();
+    const cells = [];
+    let previousKey = challengeState.lastFirstKey;
+
+    for (let index = 0; index < count; index += 1) {
+      const choices = usable.filter((cell) => cellKey(cell) !== previousKey);
+      const cell = randomItem(choices.length ? choices : usable);
+      cells.push(cell);
+      previousKey = cellKey(cell);
+    }
+
+    return cells;
+  }
+
+  function candidateByType(cell, type) {
+    return candidateOptionsFor(cell).find((candidate) => candidate.type === type);
+  }
+
+  function challengeExpressionFor(cell, level) {
+    if (level === "1") {
+      return cell.mark || cell.animal || candidateByType(cell, "axisEmoji").value;
+    }
+    if (level === "2") {
+      return candidateByType(cell, "number").value;
+    }
+    if (level === "3") {
+      return candidateByType(cell, "xySlash").value;
+    }
+    if (level === "4") {
+      return candidateByType(cell, "englishEnglish").value;
+    }
+
+    return randomItem(candidateOptionsFor(cell)).value;
+  }
+
+  function clearChallengeHighlight() {
+    document.querySelectorAll("#challengeMap .kana-cell").forEach((el) => {
+      el.classList.remove("is-translated", "is-selected");
+      el.removeAttribute("data-translation-order");
+    });
+  }
+
+  function highlightChallengeCells() {
+    clearChallengeHighlight();
+    const ordersByKey = new Map();
+    challengeState.cells.forEach((cell, index) => {
+      const key = cellKey(cell);
+      const orders = ordersByKey.get(key) || [];
+      orders.push(index + 1);
+      ordersByKey.set(key, orders);
+    });
+    ordersByKey.forEach((orders, key) => {
+      const [xId, yId] = key.split("-");
+      const el = document.querySelector(`#challengeMap .kana-cell[data-x="${xId}"][data-y="${yId}"]`);
+      if (!el) return;
+      el.classList.add("is-translated");
+      el.dataset.translationOrder = orders.join(",");
+    });
+  }
+
+  function renderChallengeAnswer() {
+    challengeTokenRow.innerHTML = challengeState.answerGroups.length
+      ? challengeState.answerGroups.map((cell) => `<span class="token-chip">${cell.value}</span>`).join("")
+      : `<span class="token-empty">地図で押したこたえが並びます</span>`;
+  }
+
+  function currentChallengeAnswer() {
+    const typed = challengeAnswerInput.value.replace(/\s/g, "");
+    const tapped = challengeState.answerGroups.map((cell) => cell.value).join("");
+    return applyKanaHelpers(Array.from(typed + tapped));
+  }
+
+  function resetChallengeAnswer() {
+    challengeState.answerGroups = [];
+    challengeAnswerInput.value = "";
+    challengeResult.hidden = true;
+    challengeResult.textContent = "";
+    challengeResult.classList.remove("is-wrong");
+    nextQuestionButton.hidden = true;
+    renderChallengeAnswer();
+  }
+
+  function renderChallengeQuestion() {
+    const level = challengeLevel.value;
+    const lengthLabel = challengeLength.options[challengeLength.selectedIndex].textContent;
+    challengeMeta.textContent = `${level === "max" ? "MAX" : `LEVEL ${level}`} / ${lengthLabel}`;
+    challengeQuestion.innerHTML = challengeState.cells
+      .map((cell) => `<span class="question-piece">${challengeExpressionFor(cell, level)}</span>`)
+      .join("");
+  }
+
+  function generateChallenge() {
+    const length = challengeLength.value;
+    if (length === "word") {
+      const words = challengeWords();
+      const usableWords = words.length ? words : ["ねこ"];
+      const choices = usableWords.filter((word) => {
+        const cells = wordToChallengeCells(word);
+        return cells[0] && cellKey(cells[0]) !== challengeState.lastFirstKey;
+      });
+      const word = randomItem(choices.length ? choices : usableWords);
+      challengeState.cells = wordToChallengeCells(word);
+    } else {
+      challengeState.cells = randomChallengeCells(Number(length));
+    }
+
+    if (challengeState.cells.length) {
+      challengeState.lastFirstKey = cellKey(challengeState.cells[0]);
+    }
+    challengeState.expected = applyKanaHelpers(challengeState.cells.map((cell) => cell.value));
+    resetChallengeAnswer();
+    clearChallengeHighlight();
+    renderChallengeQuestion();
+  }
+
+  function appendChallengeCell(cell) {
+    challengeState.answerGroups.push(cell);
+    renderChallengeAnswer();
+  }
+
+  function removeLastChallengeAnswer() {
+    if (challengeState.answerGroups.length) {
+      challengeState.answerGroups.pop();
+    } else {
+      const chars = Array.from(challengeAnswerInput.value);
+      chars.pop();
+      challengeAnswerInput.value = chars.join("");
+    }
+    renderChallengeAnswer();
+  }
+
+  function clearChallengeAnswer() {
+    challengeState.answerGroups = [];
+    challengeAnswerInput.value = "";
+    renderChallengeAnswer();
+  }
+
+  function checkChallengeAnswer() {
+    const answer = currentChallengeAnswer();
+    const correct = answer === challengeState.expected;
+    challengeResult.hidden = false;
+    challengeResult.classList.toggle("is-wrong", !correct);
+    challengeResult.textContent = correct ? "せいかい！" : "もういちど！";
+    if (correct) {
+      challengeState.score += 1;
+      challengeScore.textContent = `${challengeState.score}問せいかい！`;
+      nextQuestionButton.hidden = false;
+      highlightChallengeCells();
+    }
+  }
+
   function translateCipher() {
     const { parsed, errors } = parseCipherAddresses(cipherInput.value);
     const kanaList = parsed.map((cell) => cell.value);
@@ -534,13 +738,24 @@
   xSelect.addEventListener("change", updateFoundCell);
   ySelect.addEventListener("change", updateFoundCell);
   translateButton.addEventListener("click", translateCipher);
+  startChallengeButton.addEventListener("click", generateChallenge);
+  nextQuestionButton.addEventListener("click", generateChallenge);
+  checkAnswerButton.addEventListener("click", checkChallengeAnswer);
+  hintButton.addEventListener("click", highlightChallengeCells);
+  challengeUndoButton.addEventListener("click", removeLastChallengeAnswer);
+  challengeClearButton.addEventListener("click", clearChallengeAnswer);
+  challengeLevel.addEventListener("change", generateChallenge);
+  challengeLength.addEventListener("change", generateChallenge);
 
   buildMap("createMap", { mode: "create", onCellClick: appendCell });
   buildMap("searchMap", { mode: "search" });
+  buildMap("challengeMap", { mode: "challenge", onCellClick: appendChallengeCell });
   buildExpressionIndex();
   populateSelects();
   renderCreateAddressPickers();
   setCreateNotice(false);
   setGroups([]);
   updateFoundCell();
+  renderChallengeAnswer();
+  generateChallenge();
 })();

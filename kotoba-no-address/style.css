@@ -41,6 +41,7 @@ body::before {
 
 button,
 textarea,
+input,
 select {
   font: inherit;
 }
@@ -154,7 +155,7 @@ main {
 
 .home-panel {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
 }
 
@@ -214,6 +215,10 @@ main {
   background: linear-gradient(160deg, #d9f2ff, #e3ffe8);
 }
 
+.challenge-entry {
+  background: linear-gradient(160deg, #ffe6d8, #f0fff3);
+}
+
 .home-address-note {
   display: grid;
   justify-items: center;
@@ -262,6 +267,7 @@ main {
 
 .maker-panel,
 .finder-panel,
+.challenge-panel,
 .map-panel {
   min-width: 0;
   border: 1px solid var(--line);
@@ -282,6 +288,7 @@ main {
 }
 
 textarea,
+input,
 select {
   width: 100%;
   border: 2px solid rgba(22, 112, 135, 0.22);
@@ -297,6 +304,11 @@ textarea {
   font-size: clamp(26px, 5vw, 42px);
   font-weight: 800;
   line-height: 1.35;
+}
+
+input {
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 900;
 }
 
 .step-card,
@@ -879,7 +891,7 @@ textarea {
 
   .mode-switch {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 
   .mode-button {
@@ -892,6 +904,7 @@ textarea {
 
   .maker-panel,
   .finder-panel,
+  .challenge-panel,
   .map-panel {
     padding: 12px;
   }
@@ -922,4 +935,68 @@ textarea {
   .address-picker-row.y-picker {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+}
+
+.challenge-question-card {
+  margin-top: 14px;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 16px;
+  background: #fff7d7;
+  box-shadow: 0 8px 0 rgba(37, 137, 164, 0.12);
+}
+
+.challenge-question-card > span,
+.challenge-score {
+  display: block;
+  color: #167087;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.challenge-question {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.question-piece {
+  border-radius: 8px;
+  padding: 14px 16px;
+  background: #fff;
+  color: var(--ink);
+  font-size: clamp(30px, 6vw, 54px);
+  font-weight: 950;
+  box-shadow: inset 0 -3px 0 rgba(255, 139, 49, 0.2);
+}
+
+.hint-button {
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.challenge-result {
+  margin-top: 12px;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fff083;
+  color: var(--ink);
+  font-size: clamp(32px, 7vw, 56px);
+  font-weight: 950;
+  text-align: center;
+}
+
+.challenge-result.is-wrong {
+  background: #e8f8ff;
+}
+
+.answer-button,
+.next-question-button {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.challenge-score {
+  margin-top: 12px;
+  text-align: center;
 }

@@ -17,6 +17,7 @@
       <button class="mode-button is-active" type="button" data-view="home">ホーム</button>
       <button class="mode-button" type="button" data-view="create">つくる</button>
       <button class="mode-button" type="button" data-view="search">さがす</button>
+      <button class="mode-button" type="button" data-view="challenge">チャレンジ</button>
     </div>
   </header>
 
@@ -40,6 +41,12 @@
             <strong>暗号を読む</strong>
             <small>住所から、ことばを見つける</small>
             <em>暗号 → 住所 → ことば</em>
+          </button>
+          <button class="big-entry challenge-entry" type="button" data-view="challenge">
+            <span class="entry-icon">🎯</span>
+            <strong>チャレンジ</strong>
+            <small>ランダムな住所を読んでみよう</small>
+            <em>住所 → 問題 → こたえ</em>
           </button>
         </div>
 
@@ -165,11 +172,78 @@
         </section>
       </div>
     </section>
+
+    <section class="view challenge-view" id="challengeView">
+      <div class="tool-layout challenge-layout">
+        <section class="challenge-panel" aria-labelledby="challengeTitle">
+          <section class="step-card challenge-settings" aria-labelledby="challengeTitle">
+            <div class="step-heading">
+              <span>START</span>
+              <h2 id="challengeTitle">チャレンジ</h2>
+            </div>
+
+            <label class="input-label" for="challengeLevel">LEVEL</label>
+            <select id="challengeLevel">
+              <option value="1">LEVEL 1</option>
+              <option value="2">LEVEL 2</option>
+              <option value="3">LEVEL 3</option>
+              <option value="4">LEVEL 4</option>
+              <option value="5">LEVEL 5</option>
+              <option value="max">MAX</option>
+            </select>
+
+            <label class="input-label" for="challengeLength">問題の長さ</label>
+            <select id="challengeLength">
+              <option value="1">1文字</option>
+              <option value="2">2文字</option>
+              <option value="3">3文字</option>
+              <option value="word">ことば</option>
+            </select>
+
+            <button class="translate-button" type="button" id="startChallengeButton">問題を出す</button>
+          </section>
+
+          <section class="challenge-question-card" aria-live="polite">
+            <span id="challengeMeta">LEVEL 1 / 1文字</span>
+            <div class="challenge-question" id="challengeQuestion"></div>
+            <button class="secondary-button hint-button" type="button" id="hintButton">ヒント</button>
+          </section>
+
+          <section class="step-card challenge-answer-card">
+            <div class="step-heading">
+              <span>ANSWER</span>
+              <h2>こたえ</h2>
+            </div>
+            <input id="challengeAnswerInput" type="text" placeholder="こたえを入れる">
+            <div class="token-row" id="challengeTokenRow" aria-label="地図で選んだこたえ"></div>
+            <div class="edit-actions">
+              <button class="secondary-button undo-button" type="button" id="challengeUndoButton">← 一個消す</button>
+              <button class="secondary-button clear-button" type="button" id="challengeClearButton">クリア</button>
+            </div>
+            <button class="copy-button answer-button" type="button" id="checkAnswerButton">こたえる</button>
+            <div class="challenge-result" id="challengeResult" hidden></div>
+            <button class="translate-button next-question-button" type="button" id="nextQuestionButton" hidden>つぎの問題</button>
+            <p class="challenge-score" id="challengeScore">0問せいかい！</p>
+          </section>
+        </section>
+
+        <section class="map-panel" aria-labelledby="challengeMapTitle">
+          <div class="panel-heading">
+            <p class="eyebrow">Challenge Map</p>
+            <h2 id="challengeMapTitle">地図でこたえる</h2>
+          </div>
+          <div class="map-scroll">
+            <div class="kana-map" id="challengeMap"></div>
+          </div>
+        </section>
+      </div>
+    </section>
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="data/map.js"></script>
+  <script src="data/challenge-words.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
