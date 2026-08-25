@@ -25,15 +25,15 @@ window.CIPHER_MAP_DATA = {
   cells: [
     [{ kana: "あ", animal: "🐜" }, { kana: "い", animal: "🐶" }, { kana: "う", animal: "🐮" }, { kana: "え", animal: "🦐" }, { kana: "お", animal: "🐺" }, { mark: "🌸" }, { mark: "🍓" }],
     [{ kana: "か", animal: "🦛" }, { kana: "き", animal: "🦒" }, { kana: "く", animal: "🐻" }, { kana: "け", animal: "🐛" }, { kana: "こ", animal: "🐨" }, { mark: "🏯" }, { mark: "🍡" }],
-    [{ kana: "さ", animal: "🐵" }, { kana: "し", animal: "🦌" }, { kana: "す", animal: "🐦" }, { kana: "せ", animal: "🪲" }, { kana: "そ", animal: "🦑" }, { mark: "🌷" }, { mark: "🧺" }],
-    [{ kana: "た", animal: "🦅" }, { kana: "ち", animal: "🐦" }, { kana: "つ", animal: "🐦" }, { kana: "て", animal: "🐾" }, { kana: "と", animal: "🐯" }, { mark: "🏖️" }, { mark: "🍉" }],
-    [{ kana: "な", animal: "🐟" }, { kana: "に", animal: "🐔" }, { kana: "ぬ", animal: "🐟" }, { kana: "ね", animal: "🐱" }, { kana: "の", animal: "🪲" }, { mark: "⛺" }, { mark: "🍧" }],
-    [{ kana: "は", animal: "🐝" }, { kana: "ひ", animal: "🐑" }, { kana: "ふ", animal: "🐡" }, { kana: "へ", animal: "🐍" }, { kana: "ほ", animal: "🪲" }, { mark: "🎆" }, { mark: "🏊" }],
-    [{ kana: "ま", animal: "🐟" }, { kana: "み", animal: "🪱" }, { kana: "む", animal: "🐛" }, { kana: "め", animal: "🐟" }, { kana: "も", animal: "🐹" }, { mark: "🍁" }, { mark: "🌰" }],
-    [{ kana: "や", animal: "🐐" }, null, { kana: "ゆ", animal: "🦄" }, null, { kana: "よ", animal: "🐦‍⬛" }, { mark: "🗻" }, { mark: "🍠" }],
-    [{ kana: "ら", animal: "🦦" }, { kana: "り", animal: "🐿️" }, { kana: "る", animal: "🦜" }, { kana: "れ", animal: "🐟" }, { kana: "ろ", animal: "🫏" }, { mark: "🌾" }, { mark: "🍇" }],
-    [{ kana: "わ", animal: "🐊" }, null, null, null, { kana: "を", animal: "🦍" }, { mark: "⛄" }, { mark: "🍊" }],
+    [{ kana: "さ", animal: "🐵" }, { kana: "し", animal: "🦌" }, { kana: "す", animal: "🐦" }, { kana: "せ", animal: "🦗" }, { kana: "そ", animal: "🦑" }, { mark: "🌷" }, { mark: "🧺" }],
+    [{ kana: "た", animal: "🦅" }, { kana: "ち", animal: "🐤" }, { kana: "つ", animal: "🦢" }, { kana: "て", animal: "🐾" }, { kana: "と", animal: "🐯" }, { mark: "🏖️" }, { mark: "🍉" }],
+    [{ kana: "な", animal: "🐟" }, { kana: "に", animal: "🐔" }, { kana: "ぬ", animal: "🐚" }, { kana: "ね", animal: "🐱" }, { kana: "の", animal: "🪲" }, { mark: "⛺" }, { mark: "🍧" }],
+    [{ kana: "は", animal: "🐝" }, { kana: "ひ", animal: "🐑" }, { kana: "ふ", animal: "🐡" }, { kana: "へ", animal: "🐍" }, { kana: "ほ", animal: "✨🪲" }, { mark: "🎆" }, { mark: "🏊" }],
+    [{ kana: "ま", animal: "🔵🐟" }, { kana: "み", animal: "🪱" }, { kana: "む", animal: "🍃🐛" }, { kana: "め", animal: "🐬" }, { kana: "も", animal: "🐹" }, { mark: "🍁" }, { mark: "🌰" }],
+    [{ kana: "や", animal: "🐐" }, { empty: "ー" }, { kana: "ゆ", animal: "🦄" }, { empty: "ー" }, { kana: "よ", animal: "🐦‍⬛" }, { mark: "🗻" }, { mark: "🍠" }],
+    [{ kana: "ら", animal: "🦦" }, { kana: "り", animal: "🐿️" }, { kana: "る", animal: "🦜" }, { kana: "れ", animal: "🔴🐟" }, { kana: "ろ", animal: "🫏" }, { mark: "🌾" }, { mark: "🍇" }],
+    [{ kana: "わ", animal: "🐊" }, { empty: "ー" }, { empty: "ー" }, { empty: "ー" }, { kana: "を", animal: "🦍" }, { mark: "⛄" }, { mark: "🍊" }],
     [{ kana: "ん", animal: "🦁" }, { kana: "゛", animal: "🦓" }, { kana: "゜", animal: "🐼" }, { kana: "っ", animal: "🦔" }, { kana: "ゃ", animal: "🐘" }, { mark: "♨️" }, { mark: "🍲" }],
-    [{ kana: "ゅ", animal: "🦥" }, { kana: "ょ", animal: "🦩" }, null, null, null, { mark: "✨" }, { mark: "⛷️" }]
+    [{ kana: "ゅ", animal: "🦥" }, { kana: "ょ", animal: "🦩" }, { empty: "ー" }, { empty: "ー" }, { empty: "ー" }, { mark: "✨" }, { mark: "⛷️" }]
   ]
 };

@@ -103,12 +103,13 @@
         yId: y.id,
         kana: cell ? cell.kana : null,
         mark: cell ? cell.mark : null,
+        empty: cell ? cell.empty : null,
         animal: cell ? cell.animal : "⭐",
-        unused: !cell
+        unused: !cell || Boolean(cell.empty)
       };
       record.value = record.kana || record.mark || null;
       flatCells.push(record);
-      if (cell) {
+      if (cell && !record.unused) {
         if (record.value) {
           kanaIndex.set(lookupKey(record.value), record);
         }
@@ -227,7 +228,7 @@
         button.dataset.y = cell.yId;
         button.disabled = cell.unused && options.mode === "create";
         button.innerHTML = cell.unused
-          ? `<span class="kana">⭐</span><span class="coords">X${cell.xId} / Y${cell.yId}</span>`
+          ? `<span class="kana">${cell.empty || "⭐"}</span><span class="coords">X${cell.xId} / Y${cell.yId}</span>`
           : `<span class="kana">${cell.value}</span>${cell.animal ? `<span class="animal">${cell.animal}</span>` : ""}<span class="coords">X${cell.xId} / Y${cell.yId}</span>`;
         if (!cell.unused && options.onCellClick) {
           button.addEventListener("click", () => options.onCellClick(cell));
@@ -412,7 +413,7 @@
     });
 
     foundCard.innerHTML = cell.unused
-      ? `<span>見つかった文字</span><strong>⭐</strong><small>X${xId} × Y${yId} は未使用スペース</small>`
+      ? `<span>見つかった文字</span><strong>${cell.empty || "⭐"}</strong><small>X${xId} × Y${yId} は未使用スペース</small>`
       : `<span>見つかった文字</span><strong>${cell.value} ${cell.animal || ""}</strong><small>${cell.x.emoji}${cell.x.jp} × ${cell.y.emoji}${cell.y.jp}</small>`;
   }
 

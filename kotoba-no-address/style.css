@@ -813,6 +813,7 @@ input {
 
 .animal {
   font-size: 32px;
+  white-space: nowrap;
 }
 
 .coords {
