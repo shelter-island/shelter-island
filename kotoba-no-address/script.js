@@ -28,6 +28,9 @@
   const translationResultBox = document.getElementById("translationResultBox");
   const translationOutput = document.getElementById("translationOutput");
   const analysisOutput = document.getElementById("analysisOutput");
+  const createXPicker = document.getElementById("createXPicker");
+  const createYPicker = document.getElementById("createYPicker");
+  const addAddressButton = document.getElementById("addAddressButton");
   const xSelect = document.getElementById("xSelect");
   const ySelect = document.getElementById("ySelect");
   const foundCard = document.getElementById("foundCard");
@@ -36,6 +39,10 @@
   const flatCells = [];
   const kanaIndex = new Map();
   const addressIndex = new Map();
+  const createAddressChoice = {
+    xId: 1,
+    yId: 1
+  };
   const voicedKana = {
     か: "が", き: "ぎ", く: "ぐ", け: "げ", こ: "ご",
     さ: "ざ", し: "じ", す: "ず", せ: "ぜ", そ: "ぞ",
@@ -53,6 +60,10 @@
     ぱ: ["は", "゜"], ぴ: ["ひ", "゜"], ぷ: ["ふ", "゜"], ぺ: ["へ", "゜"], ぽ: ["ほ", "゜"]
   };
 
+  function lookupKey(value) {
+    return value.replace(/\uFE0F/g, "");
+  }
+
   data.cells.forEach((row, yIndex) => {
     row.forEach((cell, xIndex) => {
       const x = data.xAxis[xIndex];
@@ -63,12 +74,16 @@
         xId: x.id,
         yId: y.id,
         kana: cell ? cell.kana : null,
+        mark: cell ? cell.mark : null,
         animal: cell ? cell.animal : "⭐",
         unused: !cell
       };
+      record.value = record.kana || record.mark || null;
       flatCells.push(record);
       if (cell) {
-        kanaIndex.set(cell.kana, record);
+        if (record.value) {
+          kanaIndex.set(lookupKey(record.value), record);
+        }
         addressIndex.set(`${x.id}-${y.id}`, record);
       }
     });
@@ -129,7 +144,7 @@
 
     const corner = document.createElement("div");
     corner.className = "corner-cell";
-    corner.textContent = "X軸 → / Y軸 ↓";
+    corner.innerHTML = "X軸（曜日）→<br>Y軸（干支）↓";
     map.appendChild(corner);
 
     data.xAxis.forEach((axis) => {
@@ -149,13 +164,13 @@
         const cell = flatCells.find((item) => item.xId === x.id && item.yId === axis.id);
         const button = document.createElement("button");
         button.type = "button";
-        button.className = `kana-cell${cell.unused ? " is-unused" : ""}`;
+        button.className = `kana-cell${cell.unused ? " is-unused" : ""}${cell.mark ? " is-mark" : ""}`;
         button.dataset.x = cell.xId;
         button.dataset.y = cell.yId;
         button.disabled = cell.unused && options.mode === "create";
         button.innerHTML = cell.unused
           ? `<span class="kana">⭐</span><span class="coords">X${cell.xId} / Y${cell.yId}</span>`
-          : `<span class="kana">${cell.kana}</span><span class="animal">${cell.animal}</span><span class="coords">X${cell.xId} / Y${cell.yId}</span>`;
+          : `<span class="kana">${cell.value}</span>${cell.animal ? `<span class="animal">${cell.animal}</span>` : ""}<span class="coords">X${cell.xId} / Y${cell.yId}</span>`;
         if (!cell.unused && options.onCellClick) {
           button.addEventListener("click", () => options.onCellClick(cell));
         }
@@ -172,7 +187,7 @@
   }
 
   function groupFromParts(displayKana, partChars) {
-    const parts = partChars.map((char) => kanaIndex.get(char));
+    const parts = partChars.map((char) => kanaIndex.get(lookupKey(char)));
     if (parts.some((part) => !part)) {
       return null;
     }
@@ -183,8 +198,8 @@
     if (dakutenParts[char]) {
       return groupFromParts(char, dakutenParts[char]);
     }
-    const cell = kanaIndex.get(char);
-    return cell ? { displayKana: char, parts: [cell] } : null;
+    const cell = kanaIndex.get(lookupKey(char));
+    return cell ? { displayKana: cell.value, parts: [cell] } : null;
   }
 
   function setGroups(groups) {
@@ -194,7 +209,7 @@
   }
 
   function appendCell(cell) {
-    state.groups.push({ displayKana: cell.kana, parts: [cell] });
+    state.groups.push({ displayKana: cell.value, parts: [cell] });
     state.selectedCandidates.push([candidatesFor(cell)[0]]);
     kanaInput.value = state.groups.map((group) => group.displayKana).join("");
     renderSelections();
@@ -213,13 +228,13 @@
 
   function renderSelections() {
     tokenRow.innerHTML = state.groups.length
-      ? state.groups.flatMap((group) => group.parts).map((cell) => `<span class="token-chip">${cell.kana}</span>`).join("")
+      ? state.groups.flatMap((group) => group.parts).map((cell) => `<span class="token-chip">${cell.value}</span>`).join("")
       : `<span class="token-empty">ここに暗号にする文字が並びます</span>`;
 
     selectedText.textContent = state.groups.length
       ? state.groups.map((group) => {
         const addresses = group.parts.map((cell) => {
-          return `${cell.kana} → ${cell.x.key} / ${cell.y.key} → ${cell.x.emoji}${cell.x.jp} × ${cell.y.emoji}${cell.y.jp}`;
+          return `${cell.value} → ${cell.x.key} / ${cell.y.key} → ${cell.x.emoji}${cell.x.jp} × ${cell.y.emoji}${cell.y.jp}`;
         }).join(" + ");
         return group.parts.length > 1 ? `${group.displayKana} → ${addresses}` : addresses;
       }).join(" / ")
@@ -234,8 +249,8 @@
       const card = document.createElement("section");
       card.className = "choice-card";
       const partLabel = group.parts.length > 1
-        ? `<small>${group.parts.map((cell) => cell.kana).join(" + ")}</small>`
-        : `<small>${group.parts[0].animal}</small>`;
+        ? `<small>${group.parts.map((cell) => cell.value).join(" + ")}</small>`
+        : `<small>${group.parts[0].animal || "マーク"}</small>`;
       const parts = group.parts.map((cell, partIndex) => {
         const buttons = candidatesFor(cell).map((candidate) => {
           const selected = state.selectedCandidates[groupIndex][partIndex] === candidate ? " is-selected" : "";
@@ -244,7 +259,7 @@
         return `
           <div class="part-box">
             <div class="part-address">
-              <strong>${cell.kana}</strong>
+              <strong>${cell.value}</strong>
               <span>${cell.x.emoji} ${cell.x.jp} × ${cell.y.emoji} ${cell.y.jp}</span>
             </div>
             <div class="candidate-grid">${buttons}</div>
@@ -296,6 +311,39 @@
     ySelect.innerHTML = data.yAxis.map((axis) => `<option value="${axis.id}">Y${axis.id} ${axis.emoji} ${axis.jp} / ${axis.en}</option>`).join("");
   }
 
+  function renderCreateAddressPickers() {
+    createXPicker.innerHTML = data.xAxis.map((axis) => {
+      const selected = axis.id === createAddressChoice.xId ? " is-selected" : "";
+      return `<button class="address-pick-button${selected}" type="button" data-axis="x" data-id="${axis.id}">X${axis.id}</button>`;
+    }).join("");
+
+    createYPicker.innerHTML = data.yAxis.map((axis) => {
+      const selected = axis.id === createAddressChoice.yId ? " is-selected" : "";
+      return `<button class="address-pick-button${selected}" type="button" data-axis="y" data-id="${axis.id}">Y${axis.id}</button>`;
+    }).join("");
+  }
+
+  function handleCreateAddressPick(event) {
+    const button = event.target.closest(".address-pick-button");
+    if (!button) return;
+    const id = Number(button.dataset.id);
+    if (button.dataset.axis === "x") {
+      createAddressChoice.xId = id;
+    } else {
+      createAddressChoice.yId = id;
+    }
+    renderCreateAddressPickers();
+  }
+
+  function appendPickedAddress() {
+    const cell = addressIndex.get(`${createAddressChoice.xId}-${createAddressChoice.yId}`);
+    if (!cell || cell.unused) {
+      showToast("この住所はまだ使えません");
+      return;
+    }
+    appendCell(cell);
+  }
+
   function updateFoundCell() {
     const xId = Number(xSelect.value);
     const yId = Number(ySelect.value);
@@ -307,7 +355,7 @@
 
     foundCard.innerHTML = cell.unused
       ? `<span>見つかった文字</span><strong>⭐</strong><small>X${xId} × Y${yId} は未使用スペース</small>`
-      : `<span>見つかった文字</span><strong>${cell.kana} ${cell.animal}</strong><small>${cell.x.emoji}${cell.x.jp} × ${cell.y.emoji}${cell.y.jp}</small>`;
+      : `<span>見つかった文字</span><strong>${cell.value} ${cell.animal || ""}</strong><small>${cell.x.emoji}${cell.x.jp} × ${cell.y.emoji}${cell.y.jp}</small>`;
   }
 
   function clearTranslationHighlight() {
@@ -389,7 +437,7 @@
 
   function translateCipher() {
     const { parsed, errors } = parseEmojiAddresses(cipherInput.value);
-    const kanaList = parsed.map((cell) => cell.kana);
+    const kanaList = parsed.map((cell) => cell.value);
     const result = applyKanaHelpers(kanaList);
 
     setTranslationResult(result);
@@ -429,6 +477,10 @@
 
   undoLast.addEventListener("click", removeLastGroup);
 
+  createXPicker.addEventListener("click", handleCreateAddressPick);
+  createYPicker.addEventListener("click", handleCreateAddressPick);
+  addAddressButton.addEventListener("click", appendPickedAddress);
+
   clearSelection.addEventListener("click", () => {
     kanaInput.value = "";
     setCreateNotice(false);
@@ -464,6 +516,7 @@
   buildMap("createMap", { mode: "create", onCellClick: appendCell });
   buildMap("searchMap", { mode: "search" });
   populateSelects();
+  renderCreateAddressPickers();
   setCreateNotice(false);
   setGroups([]);
   updateFoundCell();

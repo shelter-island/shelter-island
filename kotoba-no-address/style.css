@@ -383,6 +383,52 @@ textarea {
   font-weight: 900;
 }
 
+.address-picker {
+  margin-top: 12px;
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(232, 248, 255, 0.72);
+}
+
+.address-picker p {
+  margin-bottom: 8px;
+  color: #167087;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.address-picker-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.address-picker-row.y-picker {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.address-pick-button {
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 6px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink);
+  font-weight: 900;
+  box-shadow: 0 2px 0 rgba(38, 108, 128, 0.14);
+}
+
+.address-pick-button.is-selected {
+  background: var(--accent);
+  color: #fff;
+}
+
+.add-address-button {
+  margin-top: 10px;
+  width: 100%;
+  background: #fff7d7;
+}
+
 .address-details {
   margin-top: 10px;
   color: var(--muted);
@@ -599,10 +645,10 @@ textarea {
 
 .kana-map {
   display: grid;
-  grid-template-columns: 144px repeat(5, minmax(132px, 1fr));
+  grid-template-columns: 144px repeat(7, minmax(118px, 1fr));
   grid-auto-rows: minmax(74px, auto);
   gap: 8px;
-  min-width: 860px;
+  min-width: 1040px;
 }
 
 .corner-cell,
@@ -666,12 +712,39 @@ textarea {
   text-align: left;
 }
 
-.kana-cell:nth-child(5n+2) {
+.kana-cell[data-x="1"] {
   background: var(--island-2);
 }
 
-.kana-cell:nth-child(5n+3) {
+.kana-cell[data-x="2"] {
+  background: var(--island);
+}
+
+.kana-cell[data-x="3"] {
+  background: #eaf8ff;
+}
+
+.kana-cell[data-x="4"] {
   background: var(--island-3);
+}
+
+.kana-cell[data-x="5"] {
+  background: #fff7d7;
+}
+
+.kana-cell[data-x="6"],
+.kana-cell[data-x="7"] {
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.kana-cell.is-mark {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  text-align: center;
+}
+
+.kana-cell.is-mark .kana {
+  font-size: 38px;
 }
 
 .kana-cell:hover,
@@ -824,9 +897,9 @@ textarea {
   }
 
   .kana-map {
-    grid-template-columns: 104px repeat(5, 112px);
+    grid-template-columns: 104px repeat(7, 104px);
     grid-auto-rows: minmax(68px, auto);
-    min-width: 700px;
+    min-width: 832px;
   }
 
   .axis-name {
@@ -843,5 +916,10 @@ textarea {
 
   .candidate-grid {
     grid-template-columns: 1fr;
+  }
+
+  .address-picker-row,
+  .address-picker-row.y-picker {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }

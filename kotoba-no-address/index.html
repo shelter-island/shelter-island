@@ -24,7 +24,7 @@
     <section class="view home-view is-active" id="homeView">
       <div class="home-shell">
         <div class="home-spark">
-          <p>☀️ × 🐭 → あ</p>
+          <p>🌙 × 🐭 → あ</p>
           <span>この表をどう使うかは、あなた次第。</span>
         </div>
 
@@ -68,6 +68,12 @@
               <button class="notice-button" type="button" id="goSearchButton">さがすへ</button>
             </div>
             <div class="token-row" id="tokenRow" aria-label="暗号にする文字"></div>
+            <div class="address-picker" aria-label="XとYで住所を選ぶ">
+              <p>住所を選ぶ</p>
+              <div class="address-picker-row" id="createXPicker" aria-label="X選択"></div>
+              <div class="address-picker-row y-picker" id="createYPicker" aria-label="Y選択"></div>
+              <button class="secondary-button add-address-button" type="button" id="addAddressButton">この住所を選ぶ</button>
+            </div>
             <details class="address-details">
               <summary>住所を見る</summary>
               <div id="selectedText">まだありません</div>
@@ -116,7 +122,7 @@
               <span>A</span>
               <h2 id="readerTitle">暗号を読む</h2>
             </div>
-            <textarea id="cipherInput" rows="4" placeholder="☀️🐮☀️🐯🌙🐶🔥🐮🌙🐶🔥🐵☀️🐴"></textarea>
+            <textarea id="cipherInput" rows="4" placeholder="🌙🐮🌙🐯🔥🐶💧🐮🔥🐶💧🐵🌙🐴"></textarea>
             <button class="translate-button" type="button" id="translateButton">翻訳する</button>
             <div class="translation-result" id="translationResultBox" hidden>
               <span>見つかったことば</span>
