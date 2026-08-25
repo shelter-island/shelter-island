@@ -39,6 +39,8 @@
   const flatCells = [];
   const kanaIndex = new Map();
   const addressIndex = new Map();
+  const expressionIndex = new Map();
+  let expressionKeys = [];
   const createAddressChoice = {
     xId: 1,
     yId: 1
@@ -62,6 +64,10 @@
 
   function lookupKey(value) {
     return value.replace(/\uFE0F/g, "");
+  }
+
+  function compactExpression(value) {
+    return lookupKey(value).replace(/\s/g, "");
   }
 
   data.cells.forEach((row, yIndex) => {
@@ -89,14 +95,44 @@
     });
   });
 
+  const candidateTypes = [
+    { id: "number", label: "数字", make: (cell) => `${cell.xId}${cell.yId}` },
+    { id: "xySlash", label: "X/Y", make: (cell) => `X${cell.xId}/Y${cell.yId}` },
+    { id: "xyCompact", label: "XY", make: (cell) => `X${cell.xId}Y${cell.yId}` },
+    { id: "hyphen", label: "数字-数字", make: (cell) => `${cell.xId}-${cell.yId}` },
+    { id: "englishNumber", label: "英語+数字", make: (cell) => `${cell.x.en}${cell.yId}` },
+    { id: "numberEnglish", label: "数字+英語", make: (cell) => `${cell.xId}${cell.y.en}` },
+    { id: "englishEnglish", label: "英語+英語", make: (cell) => `${cell.x.en}${cell.y.en}` },
+    { id: "axisEmoji", label: "絵文字", make: (cell) => `${cell.x.emoji}${cell.y.emoji}` },
+    { id: "cellMark", label: "マーク", make: (cell) => cell.mark || null }
+  ];
+
+  function candidateOptionsFor(cell) {
+    const seen = new Set();
+    return candidateTypes
+      .map((type) => ({ type: type.id, label: type.label, value: type.make(cell) }))
+      .filter((candidate) => {
+        if (!candidate.value || seen.has(candidate.value)) {
+          return false;
+        }
+        seen.add(candidate.value);
+        return true;
+      });
+  }
+
   function candidatesFor(cell) {
-    return [
-      `${cell.xId}${cell.yId}`,
-      `${cell.x.en}${cell.yId}`,
-      `${cell.xId}${cell.y.en}`,
-      `${cell.x.en}${cell.y.en}`,
-      `${cell.x.emoji}${cell.y.emoji}`
-    ];
+    return candidateOptionsFor(cell).map((candidate) => candidate.value);
+  }
+
+  function buildExpressionIndex() {
+    expressionIndex.clear();
+    flatCells.forEach((cell) => {
+      if (cell.unused) return;
+      candidateOptionsFor(cell).forEach((candidate) => {
+        expressionIndex.set(compactExpression(candidate.value), cell);
+      });
+    });
+    expressionKeys = Array.from(expressionIndex.keys()).sort((a, b) => b.length - a.length);
   }
 
   function isCipherLikeInput(value) {
@@ -252,9 +288,9 @@
         ? `<small>${group.parts.map((cell) => cell.value).join(" + ")}</small>`
         : `<small>${group.parts[0].animal || "マーク"}</small>`;
       const parts = group.parts.map((cell, partIndex) => {
-        const buttons = candidatesFor(cell).map((candidate) => {
-          const selected = state.selectedCandidates[groupIndex][partIndex] === candidate ? " is-selected" : "";
-          return `<button class="candidate-button${selected}" type="button" data-group="${groupIndex}" data-part="${partIndex}" data-candidate="${candidate}">${candidate}</button>`;
+        const buttons = candidateOptionsFor(cell).map((candidate) => {
+          const selected = state.selectedCandidates[groupIndex][partIndex] === candidate.value ? " is-selected" : "";
+          return `<button class="candidate-button${selected}" type="button" data-group="${groupIndex}" data-part="${partIndex}" data-type="${candidate.type}" data-candidate="${candidate.value}">${candidate.value}</button>`;
         }).join("");
         return `
           <div class="part-box">
@@ -384,34 +420,20 @@
     });
   }
 
-  function parseEmojiAddresses(value) {
-    const compact = value.replace(/\s/g, "");
-    const chars = Array.from(compact).filter((char) => char !== "️");
+  function parseCipherAddresses(value) {
+    const compact = compactExpression(value);
     const parsed = [];
     const errors = [];
+    let index = 0;
 
-    for (let index = 0; index < chars.length; index += 2) {
-      const xEmoji = chars[index];
-      const yEmoji = chars[index + 1];
-      if (!xEmoji || !yEmoji) {
-        errors.push("最後の住所が途中で終わっています");
+    while (index < compact.length) {
+      const foundKey = expressionKeys.find((key) => compact.startsWith(key, index));
+      if (!foundKey) {
+        errors.push(`${compact.slice(index, index + 8)} は読めません`);
         break;
       }
-
-      const x = data.xAxis.find((axis) => axis.emoji.replace("️", "") === xEmoji);
-      const y = data.yAxis.find((axis) => axis.emoji.replace("️", "") === yEmoji);
-      if (!x || !y) {
-        errors.push(`${xEmoji}${yEmoji} は読めません`);
-        continue;
-      }
-
-      const cell = addressIndex.get(`${x.id}-${y.id}`);
-      if (!cell || cell.unused) {
-        errors.push(`${xEmoji}${yEmoji} は未使用スペースです`);
-        continue;
-      }
-
-      parsed.push(cell);
+      parsed.push(expressionIndex.get(foundKey));
+      index += foundKey.length;
     }
 
     return { parsed, errors };
@@ -436,7 +458,7 @@
   }
 
   function translateCipher() {
-    const { parsed, errors } = parseEmojiAddresses(cipherInput.value);
+    const { parsed, errors } = parseCipherAddresses(cipherInput.value);
     const kanaList = parsed.map((cell) => cell.value);
     const result = applyKanaHelpers(kanaList);
 
@@ -515,6 +537,7 @@
 
   buildMap("createMap", { mode: "create", onCellClick: appendCell });
   buildMap("searchMap", { mode: "search" });
+  buildExpressionIndex();
   populateSelects();
   renderCreateAddressPickers();
   setCreateNotice(false);
