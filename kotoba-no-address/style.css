@@ -404,8 +404,16 @@ textarea {
   line-height: 1.7;
 }
 
-.clear-button {
+.edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 12px;
+}
+
+.undo-button,
+.clear-button {
+  background: rgba(255, 255, 255, 0.86);
 }
 
 .result-box span,

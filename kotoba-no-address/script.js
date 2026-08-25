@@ -20,6 +20,7 @@
   const choiceList = document.getElementById("choiceList");
   const cipherResultBox = document.getElementById("cipherResultBox");
   const cipherOutput = document.getElementById("cipherOutput");
+  const undoLast = document.getElementById("undoLast");
   const clearSelection = document.getElementById("clearSelection");
   const copyButton = document.getElementById("copyButton");
   const cipherInput = document.getElementById("cipherInput");
@@ -196,6 +197,17 @@
     state.groups.push({ displayKana: cell.kana, parts: [cell] });
     state.selectedCandidates.push([candidatesFor(cell)[0]]);
     kanaInput.value = state.groups.map((group) => group.displayKana).join("");
+    renderSelections();
+  }
+
+  function removeLastGroup() {
+    if (!state.groups.length) {
+      return;
+    }
+    state.groups.pop();
+    state.selectedCandidates.pop();
+    kanaInput.value = state.groups.map((group) => group.displayKana).join("");
+    setCreateNotice(false);
     renderSelections();
   }
 
@@ -414,6 +426,8 @@
     state.selectedCandidates[Number(button.dataset.group)][Number(button.dataset.part)] = button.dataset.candidate;
     renderSelections();
   });
+
+  undoLast.addEventListener("click", removeLastGroup);
 
   clearSelection.addEventListener("click", () => {
     kanaInput.value = "";
