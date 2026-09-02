@@ -8,6 +8,7 @@ export default {
         main: resolve(__dirname, 'index.html'),
         crewDetail: resolve(__dirname, 'crew-detail.html'),
         grow: resolve(__dirname, 'grow.html'),
+        sunChat: resolve(__dirname, 'sun-chat.html'),
       },
     },
   },

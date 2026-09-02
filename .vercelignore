@@ -1,7 +1,8 @@
-.DS_Store
 .env
 .env.*
 node_modules/
 dist/
-package_lock.json
+tmp/
+output/
 no_limit_crew_island/
+.DS_Store

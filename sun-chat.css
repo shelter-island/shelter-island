@@ -1,0 +1,339 @@
+:root {
+  color-scheme: dark;
+  --bg: #050503;
+  --panel: rgba(17, 13, 5, 0.82);
+  --panel-strong: rgba(32, 24, 8, 0.94);
+  --ink: #fff6d1;
+  --muted: rgba(255, 246, 209, 0.66);
+  --dim: rgba(255, 246, 209, 0.42);
+  --sun: #ffc620;
+  --sun-soft: rgba(255, 198, 32, 0.18);
+  --green: #6f9f35;
+  --line: rgba(255, 198, 32, 0.22);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--bg);
+}
+
+body {
+  min-height: 100svh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(111, 159, 53, 0.16), transparent 24rem),
+    radial-gradient(circle at 82% 0%, rgba(255, 198, 32, 0.16), transparent 26rem),
+    linear-gradient(180deg, #050503 0%, #120e06 54%, #050503 100%);
+  color: var(--ink);
+  font-family: Impact, "Arial Black", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  opacity: 0.16;
+  background:
+    linear-gradient(transparent 0 48%, rgba(255, 255, 255, 0.08) 49%, transparent 50%),
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.08), transparent 1px);
+  background-size: 100% 6px, 11px 11px;
+  mix-blend-mode: overlay;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+textarea {
+  font: inherit;
+}
+
+.chat-page {
+  width: min(1120px, 100%);
+  min-height: 100svh;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.82fr) minmax(320px, 1fr);
+  gap: 22px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.sun-intro,
+.chat-shell {
+  position: relative;
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42);
+}
+
+.sun-intro {
+  min-height: calc(100svh - 48px);
+  display: grid;
+  align-content: end;
+  overflow: hidden;
+  padding: 18px;
+}
+
+.sun-mark {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 3;
+  color: var(--sun);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+}
+
+.sun-portrait {
+  position: absolute;
+  inset: 34px 0 172px;
+  margin: 0;
+  display: grid;
+  place-items: end center;
+}
+
+.sun-portrait::before {
+  position: absolute;
+  width: min(70%, 360px);
+  aspect-ratio: 1;
+  content: "";
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 198, 32, 0.2), transparent 68%);
+  filter: blur(2px);
+}
+
+.sun-portrait img {
+  position: relative;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.52));
+}
+
+.intro-copy {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 12px;
+  padding-top: 58svh;
+}
+
+.kicker {
+  margin: 0;
+  color: var(--sun);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+}
+
+h1,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(3.3rem, 11vw, 6.5rem);
+  line-height: 0.86;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-shadow: 0 10px 0 rgba(0, 0, 0, 0.56);
+}
+
+.intro-copy p:last-child {
+  max-width: 22rem;
+  color: var(--muted);
+  font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  line-height: 1.7;
+}
+
+.chat-shell {
+  min-height: calc(100svh - 48px);
+  display: grid;
+  grid-template-rows: 1fr auto;
+  overflow: hidden;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px;
+  scroll-behavior: smooth;
+}
+
+.message {
+  width: min(88%, 34rem);
+  display: grid;
+  gap: 7px;
+  padding: 13px 14px;
+  border: 1px solid rgba(255, 246, 209, 0.12);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.message.is-user {
+  align-self: end;
+  border-color: rgba(111, 159, 53, 0.34);
+  background: rgba(111, 159, 53, 0.16);
+}
+
+.message.is-sun {
+  align-self: start;
+  border-color: rgba(255, 198, 32, 0.34);
+  background: rgba(255, 198, 32, 0.12);
+}
+
+.message-name {
+  color: var(--sun);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+}
+
+.message p {
+  color: var(--ink);
+  font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  font-size: 0.98rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.composer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 14px;
+  border-top: 1px solid var(--line);
+  background: var(--panel-strong);
+}
+
+.composer textarea {
+  width: 100%;
+  min-height: 54px;
+  max-height: 132px;
+  resize: vertical;
+  border: 1px solid rgba(255, 246, 209, 0.18);
+  border-radius: 0;
+  outline: none;
+  background: rgba(0, 0, 0, 0.34);
+  color: var(--ink);
+  padding: 12px;
+  font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+.composer textarea:focus {
+  border-color: rgba(255, 198, 32, 0.74);
+  box-shadow: 0 0 0 3px rgba(255, 198, 32, 0.12);
+}
+
+.composer textarea:disabled {
+  color: var(--dim);
+  cursor: wait;
+}
+
+.composer button {
+  min-width: 86px;
+  border: 1px solid rgba(255, 198, 32, 0.64);
+  border-radius: 0;
+  background: var(--sun);
+  color: #171005;
+  cursor: pointer;
+  font-size: 0.88rem;
+  letter-spacing: 0.1em;
+  transition: transform 160ms ease, filter 160ms ease;
+}
+
+.composer button:disabled {
+  cursor: wait;
+  filter: grayscale(0.25) brightness(0.82);
+  transform: none;
+}
+
+.composer button:hover,
+.composer button:focus-visible {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.composer button:disabled:hover,
+.composer button:disabled:focus-visible {
+  transform: none;
+  filter: grayscale(0.25) brightness(0.82);
+}
+
+.message.is-thinking p {
+  color: var(--muted);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 780px) {
+  .chat-page {
+    min-height: 100svh;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .sun-intro {
+    min-height: 300px;
+    padding: 14px;
+  }
+
+  .sun-portrait {
+    inset: 28px 0 76px;
+    place-items: end end;
+    padding-right: 4vw;
+  }
+
+  .sun-portrait img {
+    max-height: 250px;
+  }
+
+  .intro-copy {
+    padding-top: 154px;
+  }
+
+  h1 {
+    font-size: clamp(2.8rem, 16vw, 4.6rem);
+  }
+
+  .chat-shell {
+    min-height: calc(100svh - 336px);
+  }
+
+  .messages {
+    padding: 12px;
+  }
+
+  .message {
+    width: 94%;
+  }
+
+  .composer {
+    grid-template-columns: 1fr;
+  }
+
+  .composer button {
+    min-height: 46px;
+  }
+}
