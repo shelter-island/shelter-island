@@ -117,6 +117,28 @@ textarea {
   object-fit: contain;
   object-position: center bottom;
   filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.52));
+  transform-origin: 52% 88%;
+  will-change: transform;
+}
+
+.is-swaying .sun-portrait img {
+  animation: sunSway 1100ms ease-in-out both;
+}
+
+.is-hopping .sun-portrait img {
+  animation: sunHop 920ms ease-out both;
+}
+
+.is-tilting .sun-portrait img {
+  animation: sunTilt 980ms ease-in-out both;
+}
+
+.is-rejoicing .sun-portrait img {
+  animation: sunRejoice 860ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.is-chatting .sun-portrait img {
+  animation: none;
 }
 
 .intro-copy {
@@ -335,5 +357,91 @@ h1 {
 
   .composer button {
     min-height: 46px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .sun-portrait img {
+    will-change: auto;
+  }
+}
+
+@keyframes sunSway {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+
+  34% {
+    transform: translateX(-4px) rotate(-1.8deg);
+  }
+
+  68% {
+    transform: translateX(3px) rotate(1.2deg);
+  }
+}
+
+@keyframes sunHop {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  38% {
+    transform: translateY(-9px) scale(1.012);
+  }
+
+  72% {
+    transform: translateY(2px) scale(0.996);
+  }
+}
+
+@keyframes sunTilt {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  42% {
+    transform: rotate(2.3deg);
+  }
+
+  74% {
+    transform: rotate(-0.8deg);
+  }
+}
+
+@keyframes sunRejoice {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+
+  16% {
+    transform: translateY(4px) scale(0.99, 1.01);
+  }
+
+  42% {
+    transform: translateY(-42px) rotate(-2deg) scale(1.02);
+  }
+
+  72% {
+    transform: translateY(0) rotate(1deg) scale(1.02, 0.97);
+  }
+
+  86% {
+    transform: translateY(-5px) rotate(0deg) scale(0.998, 1.006);
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
   }
 }
